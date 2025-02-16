@@ -48,7 +48,7 @@ class AdminPanelProvider extends PanelProvider
                 FilamentOtpLoginPlugin::make(),
                 ApiServicePlugin::make(),
                 NewApiServicePlugin::make()
-                
+
                 ]
             )
             ->middleware([
@@ -65,8 +65,8 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->databaseNotifications()
             ->registration()
-        ->passwordReset()
-        ->emailVerification()
+            ->passwordReset()
+            ->emailVerification()
         ->profile()
             ->authMiddleware([
                 Authenticate::class,
