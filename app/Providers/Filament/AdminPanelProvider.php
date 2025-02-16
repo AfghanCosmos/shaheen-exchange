@@ -47,7 +47,9 @@ class AdminPanelProvider extends PanelProvider
                     // \Hasnayeen\Themes\ThemesPlugin::make(),
                     FilamentOtpLoginPlugin::make(),
                     ApiServicePlugin::make(),
-                    NewApiServicePlugin::make()
+                    NewApiServicePlugin::make(),
+                \EightyNine\Approvals\ApprovalPlugin::make(),
+
 
                 ]
             )
