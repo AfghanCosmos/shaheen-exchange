@@ -46,8 +46,8 @@ class AdminPanelProvider extends PanelProvider
                 [
                 \Hasnayeen\Themes\ThemesPlugin::make(),
                 FilamentOtpLoginPlugin::make(),
-                ApiServicePlugin::make(),
-                NewApiServicePlugin::make()
+                // ApiServicePlugin::make(),
+                // NewApiServicePlugin::make()
 
                 ]
             )
@@ -64,10 +64,10 @@ class AdminPanelProvider extends PanelProvider
                 \Hasnayeen\Themes\Http\Middleware\SetTheme::class
             ])
             ->databaseNotifications()
-            ->registration()
+            // ->registration()
             ->passwordReset()
-            ->emailVerification()
-        ->profile()
+            // ->emailVerification()
+        // ->profile()
             ->authMiddleware([
                 Authenticate::class,
             ]);
