@@ -164,7 +164,7 @@ class UserResource extends Resource
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\RestoreAction::make(), // Soft delete restore
-                Tables\Actions\DeleteAction::make()->label('Force Delete'), // Force delete action
+                Tables\Actions\DeleteAction::make(), // Force delete action
             ])
             ->bulkActions([
                 Tables\Actions\DeleteBulkAction::make(),
