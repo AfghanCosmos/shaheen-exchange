@@ -3,7 +3,6 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\BranchResource\Pages;
-use App\Filament\Resources\BranchResource\RelationManagers;
 use App\Models\Branch;
 use Carbon\Carbon;
 use Filament\Forms;
@@ -11,92 +10,151 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Select;
+use Filament\Tables\Columns\TextColumn;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class BranchResource extends Resource
 {
+    // Model Definition
     protected static ?string $model = Branch::class;
 
+    // Navigation Settings
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
-    protected static ?string $navigationGroup = "Settings";
+    protected static ?string $navigationGroup = 'Settings';
 
+    // ================================
+    // 🔹 FORM DEFINITION
+    // ================================
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('name')
+                TextInput::make('name')
+                    ->label('Branch Name')
+                    ->placeholder('Enter branch name')
                     ->required()
                     ->maxLength(255),
-                Forms\Components\Select::make('province_id')
+
+                Select::make('province_id')
+                    ->label('Province')
                     ->relationship('province', 'name')
-                    ->required()
                     ->searchable()
-                    ->preload(),
-                Forms\Components\Select::make('manager_id')
+                    ->preload()
+                    ->required()
+                    ->createOptionForm([
+                        TextInput::make('name')
+                            ->label('Province Name')
+                            ->placeholder('Enter new province name')
+                            ->required()
+                            ->maxLength(255),
+                    ]),
+
+                Select::make('manager_id')
+                    ->label('Manager')
                     ->relationship('manager', 'name')
-                    ->required()
                     ->searchable()
-                    ->preload(),
-                Forms\Components\DatePicker::make('start_at')
-                    ->default(Carbon::now(  ))
+                    ->preload()
+                    ->required()
+                    ->createOptionForm([
+                        TextInput::make('name')
+                            ->label('Manager Name')
+                            ->placeholder('Enter manager name')
+                            ->required()
+                            ->maxLength(255),
+                    ]),
+
+                DatePicker::make('start_at')
+                    ->label('Start Date')
+                    ->default(Carbon::now())
                     ->required(),
-                Forms\Components\Textarea::make('full_address')
+
+                Textarea::make('full_address')
+                    ->label('Full Address')
+                    ->placeholder('Enter branch full address')
                     ->required()
                     ->columnSpanFull()
                     ->maxLength(255),
-
             ]);
     }
 
+    // ================================
+    // 🔹 TABLE DEFINITION
+    // ================================
     public static function table(Table $table): Table
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('name')
+                TextColumn::make('name')
+                    ->label('Branch Name')
                     ->sortable()
                     ->searchable(),
-                Tables\Columns\TextColumn::make('province.name')
-                    ->searchable()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('manager.name')
-                    ->searchable()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('full_address')
+
+                TextColumn::make('province.name')
+                    ->label('Province')
+                    ->sortable()
                     ->searchable(),
-                Tables\Columns\TextColumn::make('start_at')
+
+                TextColumn::make('manager.name')
+                    ->label('Manager')
+                    ->sortable()
+                    ->searchable(),
+
+                TextColumn::make('full_address')
+                    ->label('Full Address')
+                    ->searchable(),
+
+                TextColumn::make('start_at')
+                    ->label('Start Date')
                     ->date()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('created_at')
+
+                TextColumn::make('created_at')
+                    ->label('Created At')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('updated_at')
+
+                TextColumn::make('updated_at')
+                    ->label('Updated At')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
-            ])->defaultSort('created_at', 'desc')
+            ])
+            ->defaultSort('created_at', 'desc')
             ->filters([
-                //
+
             ])
             ->actions([
-                Tables\Actions\ViewAction::make(),
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\ActionGroup::make([
+                    Tables\Actions\ViewAction::make(),
+                    Tables\Actions\EditAction::make(),
+                    Tables\Actions\DeleteAction::make(),
+                ]),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\ForceDeleteBulkAction::make(),
+                    Tables\Actions\RestoreBulkAction::make(),
                 ]),
             ]);
     }
 
+    // ================================
+    // 🔹 RELATIONS
+    // ================================
     public static function getRelations(): array
     {
-        return [
-            //
-        ];
+        return [];
     }
 
+    // ================================
+    // 🔹 PAGES
+    // ================================
     public static function getPages(): array
     {
         return [
