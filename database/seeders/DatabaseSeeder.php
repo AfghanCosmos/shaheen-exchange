@@ -35,7 +35,7 @@ class DatabaseSeeder extends Seeder
         //     'email' => 'admin@gmail.com',
         //     'phone_number' => '1234567890',
         //     'password' => Hash::make('password'),
-        // ]);
+        //  ]);
 
         // User::factory(20)->create();
 

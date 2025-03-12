@@ -9,13 +9,24 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up(): void
+    namespace App\Models;
+
+    use Illuminate\Database\Eloquent\Model;
+
+    class Province extends Model
     {
-        Schema::create('provinces', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
-            $table->timestamps();
-        });
+
+        public function warehouses()
+        {
+            return $this->hasMany(Warehouse::class);
+        }
+
+
+        // Relationship: A province has many workshops
+        public function workshops()
+        {
+            return $this->hasMany(Workshop::class, 'province_id');
+        }
     }
 
     /**

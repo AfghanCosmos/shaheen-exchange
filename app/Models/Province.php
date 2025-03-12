@@ -6,6 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 
 class Province extends Model
 {
+
+    protected $fillable = [
+        'name',
+    ];
+
     public function warehouses()
     {
         return $this->hasMany(Warehouse::class);
