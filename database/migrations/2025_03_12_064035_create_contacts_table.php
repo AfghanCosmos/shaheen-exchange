@@ -11,9 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('customer_types', function (Blueprint $table) {
+        Schema::create('contacts', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
+            $table->enum('type', ['phone', 'email', 'whatsapp', 'fax', 'telegram', 'skype', 'messenger', 'signal', 'wechat', 'other']);
+            $table->string('contact_value');
             $table->timestamps();
         });
     }
@@ -23,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('customer_types');
+        Schema::dropIfExists('contacts');
     }
 };
