@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     /**
      * Run the migrations.
      */
@@ -13,12 +12,33 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
+            $table->string('uuid')->unique();
             $table->string('name');
             $table->string('email')->unique();
-            $table->timestamp('email_verified_at')->nullable();
+            $table->string('phone_number')->unique();
             $table->string('password');
+            $table->string('image')->nullable();
+
+            $table->timestamp('phone_verified_at')->nullable();
+            $table->timestamp('email_verified_at')->nullable();
+
+            // Social Media Login
+            $table->string('facebook_id')->nullable();
+            $table->string('google_id')->nullable();
+
+            // Security and referral
+            $table->string('pin_code')->nullable();
+            $table->string('referral_code')->unique()->nullable();
+            $table->string('referred_by')->nullable();
+            $table->enum('status', ['active', 'inactive', 'banned'])->default('active');
+            $table->decimal('commission_percentage', 5, 2)->default(0.0);
+
+            // New Additions
+            $table->enum('user_type', ['admin', 'customer', 'vendor', 'agent'])->default('customer');
+            $table->boolean('is_active')->default(true);
             $table->rememberToken();
             $table->timestamps();
+            $table->softDeletes();
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {

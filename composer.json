@@ -8,6 +8,7 @@
     "require": {
         "php": "^8.2",
         "afsakar/filament-otp-login": "^1.3",
+        "aymanalhattami/filament-slim-scrollbar": "^2.1",
         "eightynine/filament-approvals": "^3.1",
         "filament/filament": "^3.2",
         "hasnayeen/themes": "^3.0",
