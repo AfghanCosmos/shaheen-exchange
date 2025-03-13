@@ -9,4 +9,9 @@ class StoreContact extends Model
 {
     /** @use HasFactory<\Database\Factories\StoreContactFactory> */
     use HasFactory;
+    
+    public function store()
+    {
+        return $this->belongsTo(Store::class);
+    }
 }

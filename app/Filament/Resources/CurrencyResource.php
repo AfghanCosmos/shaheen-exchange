@@ -26,9 +26,11 @@ class CurrencyResource extends Resource
             ->schema([
                 Forms\Components\TextInput::make('code')
                     ->required()
+                    ->placeholder('AF')
                     ->maxLength(3),
                 Forms\Components\TextInput::make('name')
                     ->required()
+                    ->placeholder('Afghani')
                     ->maxLength(255),
             ]);
     }

@@ -17,10 +17,10 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
 
-        DB::table('currencies')->insert([
-            ['code' => 'AFN', 'name' => 'Afghani'],
-            ['code' => 'USD', 'name' => 'US Dollar'],
-        ]);
+        // DB::table('currencies')->insert([
+        //     ['code' => 'AFN', 'name' => 'Afghani'],
+        //     ['code' => 'USD', 'name' => 'US Dollar'],
+        // ]);
 
         // DB::table('provinces')->insert([
         //     ['name' => 'Ontario'],
@@ -30,9 +30,9 @@ class DatabaseSeeder extends Seeder
         // ]);
 
         // User::factory()->create([
-        //     'uuid' => '001',
-        //     'name' => 'Admin',
-        //     'email' => 'admin@gmail.com',
+        //     'uuid' => '0011',
+        //     'name' => 'khan',
+        //     'email' => 'khan@gmail.com',
         //     'phone_number' => '1234567890',
         //     'password' => Hash::make('password'),
         //  ]);

@@ -3,15 +3,12 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\ExchangeRateResource\Pages;
-use App\Filament\Resources\ExchangeRateResource\RelationManagers;
 use App\Models\ExchangeRate;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class ExchangeRateResource extends Resource
 {
@@ -26,17 +23,24 @@ class ExchangeRateResource extends Resource
             ->schema([
                 Forms\Components\Select::make('from_currency_id')
                     ->label('From Currency')
-
                     ->relationship('fromCurrency', 'name')
                     ->preload()
                     ->native(false)
-                    ->required(),
+                    ->required()
+                    ->reactive() // Make this field reactive for dynamic filtering
+                    ->afterStateUpdated(fn (callable $set) => $set('to_currency_id', null)), // Reset 'to_currency_id' when 'from_currency_id' changes
+
                 Forms\Components\Select::make('to_currency_id')
                     ->label('To Currency')
+                    ->options(fn (callable $get) =>
+                        \App\Models\Currency::query()
+                            ->where('id', '!=', $get('from_currency_id')) // Exclude selected 'from_currency_id'
+                            ->pluck('name', 'id')
+                    )
                     ->preload()
                     ->native(false)
-                    ->relationship('toCurrency', 'name')
                     ->required(),
+
                 Forms\Components\TextInput::make('rate')
                     ->label('Exchange Rate')
                     ->required()
