@@ -55,20 +55,20 @@ class FundRequestResource extends Resource
                 Tables\Columns\TextColumn::make('uuid')
                     ->label('UUID')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('offline_transfer_id')
+                Tables\Columns\TextColumn::make('offlineTransfer.uuid')
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('store_id')
+                Tables\Columns\TextColumn::make('store.name')
                     ->numeric()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('amount_requested')
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('currency_id')
+                Tables\Columns\TextColumn::make('currency.name')
                     ->numeric()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('status'),
-                Tables\Columns\TextColumn::make('admin_id')
+                Tables\Columns\TextColumn::make('admin.name')
                     ->numeric()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('approved_at')

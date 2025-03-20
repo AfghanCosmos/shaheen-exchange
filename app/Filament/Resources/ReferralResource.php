@@ -42,10 +42,10 @@ class ReferralResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('referrer_id')
+                Tables\Columns\TextColumn::make('referrer.name')
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('referred_user_id')
+                Tables\Columns\TextColumn::make('referredUser.name')
                     ->numeric()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('reward_amount')

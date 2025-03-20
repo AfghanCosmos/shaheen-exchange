@@ -61,7 +61,7 @@ class OfflineTransferResource extends Resource
                 Tables\Columns\TextColumn::make('uuid')
                     ->label('UUID')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('sender_wallet_id')
+                Tables\Columns\TextColumn::make('senderWallet.uuid')
                     ->numeric()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('receiver_name')
@@ -73,10 +73,11 @@ class OfflineTransferResource extends Resource
                 Tables\Columns\TextColumn::make('amount')
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('currency_id')
+                Tables\Columns\TextColumn::make('currency.name')
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('status'),
+                Tables\Columns\TextColumn::make('status')
+                ->badge(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
