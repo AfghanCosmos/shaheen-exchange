@@ -2,9 +2,9 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\OfflineTransferResource\Pages;
-use App\Filament\Resources\OfflineTransferResource\RelationManagers;
-use App\Models\OfflineTransfer;
+use App\Filament\Resources\TransferResource\Pages;
+use App\Filament\Resources\TransferResource\RelationManagers;
+use App\Models\Transfer;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -13,12 +13,11 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
-class OfflineTransferResource extends Resource
+class TransferResource extends Resource
 {
-    protected static ?string $model = OfflineTransfer::class;
+    protected static ?string $model = Transfer::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
-    protected static ?string $navigationGroup = 'Transactions';
 
     public static function form(Form $form): Form
     {
@@ -31,22 +30,19 @@ class OfflineTransferResource extends Resource
                 Forms\Components\TextInput::make('sender_wallet_id')
                     ->required()
                     ->numeric(),
-                Forms\Components\TextInput::make('receiver_name')
+                Forms\Components\TextInput::make('receiver_wallet_id')
                     ->required()
-                    ->maxLength(255),
-                Forms\Components\TextInput::make('receiver_email')
-                    ->email()
-                    ->maxLength(255)
-                    ->default(null),
-                Forms\Components\TextInput::make('receiver_phone_number')
-                    ->tel()
-                    ->maxLength(20)
-                    ->default(null),
-                Forms\Components\Textarea::make('receiver_address')
-                    ->columnSpanFull(),
+                    ->numeric(),
                 Forms\Components\TextInput::make('amount')
                     ->required()
                     ->numeric(),
+                Forms\Components\TextInput::make('fee')
+                    ->required()
+                    ->numeric()
+                    ->default(0.00),
+                Forms\Components\TextInput::make('total_amount')
+                    ->numeric()
+                    ->default(null),
                 Forms\Components\TextInput::make('currency_id')
                     ->required()
                     ->numeric(),
@@ -65,20 +61,22 @@ class OfflineTransferResource extends Resource
                 Tables\Columns\TextColumn::make('senderWallet.uuid')
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('receiver_name')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('receiver_email')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('receiver_phone_number')
-                    ->searchable(),
+                Tables\Columns\TextColumn::make('receiverWallet.uuid')
+                    ->numeric()
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('amount')
+                    ->numeric()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('fee')
+                    ->numeric()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('total_amount')
                     ->numeric()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('currency.name')
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('status')
-                ->badge(),
+                Tables\Columns\TextColumn::make('status'),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
@@ -118,10 +116,10 @@ class OfflineTransferResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListOfflineTransfers::route('/'),
-            'create' => Pages\CreateOfflineTransfer::route('/create'),
-            'view' => Pages\ViewOfflineTransfer::route('/{record}'),
-            'edit' => Pages\EditOfflineTransfer::route('/{record}/edit'),
+            'index' => Pages\ListTransfers::route('/'),
+            'create' => Pages\CreateTransfer::route('/create'),
+            'view' => Pages\ViewTransfer::route('/{record}'),
+            'edit' => Pages\EditTransfer::route('/{record}/edit'),
         ];
     }
 

@@ -94,7 +94,7 @@ class WalletResource extends Resource
                     ->label('Owner Type')
                     ->sortable(),
 
-                TextColumn::make('owner_id')
+                TextColumn::make('owner.name')
                     ->label('Owner ID')
                     ->sortable(),
 

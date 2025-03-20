@@ -32,4 +32,9 @@ class Transfer extends Model
     {
         return $this->belongsTo(Wallet::class, 'receiver_wallet_id');
     }
+
+    public function currency()
+    {
+        return $this->belongsTo(Currency::class);
+    }
 }

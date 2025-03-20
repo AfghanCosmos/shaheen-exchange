@@ -27,6 +27,16 @@ class FundRequest extends Model
         return $this->belongsTo(Currency::class);
     }
 
+    public function store()
+    {
+        return $this->belongsTo(Store::class);
+    }
+
+    public function offlineTransfer()
+    {
+        return $this->belongsTo(OfflineTransfer::class);
+    }
+
     public function admin()
     {
         return $this->belongsTo(User::class, 'admin_id');

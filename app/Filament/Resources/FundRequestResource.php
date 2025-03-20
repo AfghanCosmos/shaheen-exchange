@@ -2,9 +2,9 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\OfflineTransferResource\Pages;
-use App\Filament\Resources\OfflineTransferResource\RelationManagers;
-use App\Models\OfflineTransfer;
+use App\Filament\Resources\FundRequestResource\Pages;
+use App\Filament\Resources\FundRequestResource\RelationManagers;
+use App\Models\FundRequest;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -13,12 +13,11 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
-class OfflineTransferResource extends Resource
+class FundRequestResource extends Resource
 {
-    protected static ?string $model = OfflineTransfer::class;
+    protected static ?string $model = FundRequest::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
-    protected static ?string $navigationGroup = 'Transactions';
 
     public static function form(Form $form): Form
     {
@@ -28,23 +27,13 @@ class OfflineTransferResource extends Resource
                     ->label('UUID')
                     ->required()
                     ->maxLength(36),
-                Forms\Components\TextInput::make('sender_wallet_id')
+                Forms\Components\TextInput::make('offline_transfer_id')
                     ->required()
                     ->numeric(),
-                Forms\Components\TextInput::make('receiver_name')
+                Forms\Components\TextInput::make('store_id')
                     ->required()
-                    ->maxLength(255),
-                Forms\Components\TextInput::make('receiver_email')
-                    ->email()
-                    ->maxLength(255)
-                    ->default(null),
-                Forms\Components\TextInput::make('receiver_phone_number')
-                    ->tel()
-                    ->maxLength(20)
-                    ->default(null),
-                Forms\Components\Textarea::make('receiver_address')
-                    ->columnSpanFull(),
-                Forms\Components\TextInput::make('amount')
+                    ->numeric(),
+                Forms\Components\TextInput::make('amount_requested')
                     ->required()
                     ->numeric(),
                 Forms\Components\TextInput::make('currency_id')
@@ -52,6 +41,10 @@ class OfflineTransferResource extends Resource
                     ->numeric(),
                 Forms\Components\TextInput::make('status')
                     ->required(),
+                Forms\Components\TextInput::make('admin_id')
+                    ->numeric()
+                    ->default(null),
+                Forms\Components\DateTimePicker::make('approved_at'),
             ]);
     }
 
@@ -62,23 +55,25 @@ class OfflineTransferResource extends Resource
                 Tables\Columns\TextColumn::make('uuid')
                     ->label('UUID')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('senderWallet.uuid')
+                Tables\Columns\TextColumn::make('offlineTransfer.uuid')
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('receiver_name')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('receiver_email')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('receiver_phone_number')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('amount')
+                Tables\Columns\TextColumn::make('store.name')
+                    ->numeric()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('amount_requested')
                     ->numeric()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('currency.name')
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('status')
-                ->badge(),
+                Tables\Columns\TextColumn::make('status'),
+                Tables\Columns\TextColumn::make('admin.name')
+                    ->numeric()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('approved_at')
+                    ->dateTime()
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
@@ -118,10 +113,10 @@ class OfflineTransferResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListOfflineTransfers::route('/'),
-            'create' => Pages\CreateOfflineTransfer::route('/create'),
-            'view' => Pages\ViewOfflineTransfer::route('/{record}'),
-            'edit' => Pages\EditOfflineTransfer::route('/{record}/edit'),
+            'index' => Pages\ListFundRequests::route('/'),
+            'create' => Pages\CreateFundRequest::route('/create'),
+            'view' => Pages\ViewFundRequest::route('/{record}'),
+            'edit' => Pages\EditFundRequest::route('/{record}/edit'),
         ];
     }
 
