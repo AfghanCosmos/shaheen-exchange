@@ -14,7 +14,8 @@ use Illuminate\Database\Eloquent\Builder;
 class ContractTypeResource extends Resource
 {
     protected static ?string $model = ContractType::class;
-
+    protected static ?string $navigationIcon = 'heroicon-o-phone-arrow-down-left';
+    protected static ?string $navigationGroup = 'Transection';
 
 
     public static function form(Form $form): Form

@@ -17,7 +17,8 @@ class TransferGenerateResource extends Resource
 {
     protected static ?string $model = TransferGenerate::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'heroicon-o-document-currency-bangladeshi';
+    protected static ?string $navigationGroup = 'Transactions';
 
     public static function form(Form $form): Form
     {

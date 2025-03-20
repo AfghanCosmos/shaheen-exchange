@@ -20,22 +20,8 @@ class EmployeeSalaryResource extends Resource
     protected static ?string $model = EmployeeSalary::class;
 
 
-
-
-    public static function getNavigationGroup(): string
-    {
-        return __('Human Resources');
-    }
-
-    public static function getLabel(): string
-    {
-        return __('Employee Salary');
-    }
-
-    public static function getPluralModelLabel(): string
-    {
-        return __('Employee Salaries');
-    }
+    protected static ?string $navigationIcon = 'heroicon-o-user-circle';
+    protected static ?string $navigationGroup = 'Expenses';
 
     public static function form(Form $form): Form
     {
