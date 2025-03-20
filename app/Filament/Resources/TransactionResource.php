@@ -62,13 +62,13 @@ class TransactionResource extends Resource
                 Tables\Columns\TextColumn::make('uuid')
                     ->label('UUID')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('wallet_id')
+                Tables\Columns\TextColumn::make('wallet.uuid')
                     ->numeric()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('amount')
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('currency_id')
+                Tables\Columns\TextColumn::make('currency.name')
                     ->numeric()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('status'),
@@ -77,10 +77,10 @@ class TransactionResource extends Resource
                 Tables\Columns\TextColumn::make('reference_id')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('source'),
-                Tables\Columns\TextColumn::make('referral_id')
+                Tables\Columns\TextColumn::make('referral.name')
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('bank_account_id')
+                Tables\Columns\TextColumn::make('bank.bank_name')
                     ->numeric()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('created_at')

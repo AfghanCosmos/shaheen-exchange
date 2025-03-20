@@ -58,10 +58,10 @@ class TransferResource extends Resource
                 Tables\Columns\TextColumn::make('uuid')
                     ->label('UUID')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('sender_wallet_id')
+                Tables\Columns\TextColumn::make('senderWallet.uuid')
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('receiver_wallet_id')
+                Tables\Columns\TextColumn::make('receiverWallet.uuid')
                     ->numeric()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('amount')
@@ -73,7 +73,7 @@ class TransferResource extends Resource
                 Tables\Columns\TextColumn::make('total_amount')
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('currency_id')
+                Tables\Columns\TextColumn::make('currency.name')
                     ->numeric()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('status'),
