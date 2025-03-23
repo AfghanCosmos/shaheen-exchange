@@ -7,12 +7,27 @@ use App\Filament\Resources\CustomerResource\RelationManagers;
 use App\Models\User;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Forms\Components\Section;
+use Filament\Forms\Components\Fieldset;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Toggle;
+
+use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Filament\Tables\Columns\BadgeColumn;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Filters\SelectFilter;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
-use Filament\Forms\Components\Section;
+
+use Filament\Forms\Components\Repeater;
+
 class CustomerResource extends Resource
 {
     protected static ?string $model = User::class;
@@ -59,12 +74,11 @@ class CustomerResource extends Resource
                             ->label('Email Address')
                             ->email()
                             ->placeholder('e.g., john.doe@example.com')
-                            ->required()
                             ->unique('users', 'email', ignoreRecord: true),
 
                         Forms\Components\TextInput::make('phone_number')
                             ->label('Phone Number')
-                            ->tel()
+                            // ->tel()
                             ->placeholder('e.g., +1 234 567 8901')
                             ->required()
                             ->unique('users', 'phone_number', ignoreRecord: true),
@@ -100,44 +114,46 @@ class CustomerResource extends Resource
                             Forms\Components\Fieldset::make('User KYC')
                             ->relationship('kyc')
                                 ->schema([
-                                    Section::make('Information')
-                    ->schema([
+                         Section::make('Information')
+                                    ->schema([
 
                         TextInput::make('govt_id_type')
                             ->label('Government ID Type')
                             ->maxLength(255)
+                            ->required()
                             ->placeholder('e.g., Passport, Driver’s License'),
 
                         TextInput::make('govt_id_number')
                             ->label('Government ID Number')
                             ->maxLength(255)
+                            ->required()
                             ->unique('k_y_c_s', 'govt_id_number', ignoreRecord: true)
                             ->placeholder('Enter ID Number'),
-                    ])->columns(2),
+
+                            DatePicker::make('issue_date')
+                            ->label('Issue Date')
+                            ->required(),
+
+                        DatePicker::make('expire_date')
+                            ->label('Expiry Date')
+                            ->required()
+                            ->after('issue_date'),
+                    ])->columns(4),
 
                 Section::make('Document Details')
                     ->schema([
                         Forms\Components\FileUpload::make('govt_id_file')
                             ->label('Government ID File')
                             ->directory('kyc_documents')
-                            ->preserveFilenames()
                             ->required()
-                            ->imageEditor()
-                            ->enableDownload()
-                            ->maxSize(2048)
+                            ->maxSize(4048)
                             ->acceptedFileTypes(['image/jpeg', 'image/png', 'application/pdf'])
                             ->visibility('public'), // Ensure uploaded files are accessible
 
 
 
-                        DatePicker::make('issue_date')
-                            ->label('Issue Date')
-                            ->required(),
-
-                        DatePicker::make('expire_date')
-                            ->label('Expiry Date')
-                            ->after('issue_date'), // Ensures expiry date is after issue date
-                    ])->columns(2),
+                       // Ensures expiry date is after issue date
+                    ])->columns(1),
 
                 Section::make('Status & Responses')
                     ->schema([
@@ -166,13 +182,79 @@ class CustomerResource extends Resource
 
                                 ]),
                     ])
-                    ->columns(3)
+                    ->columns(3),
+
+
+Repeater::make('banks')
+->relationship('banks')
+->columnSpanFull()
+    ->schema([
+        Section::make('Bank Account Details')
+                    ->schema([
+
+
+                        TextInput::make('bank_name')
+                            ->label('Bank Name')
+                            ->maxLength(100)
+                            ->required(),
+
+                        TextInput::make('account_holder_name')
+                            ->label('Account Holder Name')
+                            ->maxLength(100)
+                            ->required(),
+
+                        TextInput::make('account_number')
+                            ->label('Account Number')
+                            ->maxLength(50)
+                            ->required()
+                            ->unique('bank_accounts', 'account_number', ignoreRecord: true),
+
+                        TextInput::make('iban')
+                            ->label('IBAN')
+                            ->maxLength(34)
+                            ->nullable(),
+
+                        TextInput::make('swift_code')
+                            ->label('SWIFT Code')
+                            ->maxLength(11)
+                            ->nullable(),
+
+                        Select::make('currency_id')
+                            ->label('Currency')
+                            ->relationship('currency', 'code')
+                            ->searchable()
+                            ->preload()
+                            ->required(),
+
+
+                        Select::make('status')
+                            ->label('Status')
+                            ->options([
+                                'active' => 'Active',
+                                'inactive' => 'Inactive',
+                                'closed' => 'Closed',
+                            ])
+                            ->default('active')
+                            ->required(),
+
+
+                            Toggle::make('is_primary')
+                            ->label('Primary Account')
+                            ->inline(false)
+                            ->default(false),
+
+                    ])
+                    ->columns(3),
+
+    ]),
+
             ]);
     }
 
     public static function table(Table $table): Table
     {
         return $table
+        ->defaultSort('created_at', 'desc')
         ->modifyQueryUsing(fn(Builder $query) => $query->where('user_type', 'customer')->orderBy('created_at', 'desc'))
 
             ->columns([
