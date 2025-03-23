@@ -31,7 +31,7 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             ->login()
             ->colors([
-                'primary' => Color::Amber,
+                'primary' => Color::Green,
             ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
@@ -45,7 +45,7 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->plugins(
                 [
-                    \Hasnayeen\Themes\ThemesPlugin::make(),
+                    // \Hasnayeen\Themes\ThemesPlugin::make(),
                     FilamentOtpLoginPlugin::make(),
                     ApiServicePlugin::make(),
                     NewApiServicePlugin::make(),
@@ -67,7 +67,7 @@ class AdminPanelProvider extends PanelProvider
                 SubstituteBindings::class,
                 DisableBladeIconComponents::class,
                 DispatchServingFilamentEvent::class,
-                \Hasnayeen\Themes\Http\Middleware\SetTheme::class
+                // \Hasnayeen\Themes\Http\Middleware\SetTheme::class
             ])
             ->databaseNotifications()
             ->registration()
