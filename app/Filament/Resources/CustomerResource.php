@@ -4,7 +4,9 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\CustomerResource\Pages;
 use App\Filament\Resources\CustomerResource\RelationManagers;
+use App\Filament\Resources\CustomerResource\RelationManagers\BanksRelationManager;
 use App\Models\User;
+use Carbon\Carbon;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Forms\Components\Section;
@@ -345,7 +347,7 @@ class CustomerResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            BanksRelationManager::class
         ];
     }
 
