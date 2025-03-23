@@ -23,16 +23,24 @@ class ReferralResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('referrer_id')
-                    ->required()
-                    ->numeric(),
-                Forms\Components\TextInput::make('referred_user_id')
-                    ->required()
-                    ->numeric(),
+                Forms\Components\Select::make('referrer_id')
+                    ->relationship('referrer', 'name')
+                    ->searchable()
+                    ->required(),
+                Forms\Components\Select::make('referred_user_id')
+                    ->relationship('referredUser', 'name')
+                    ->searchable()
+                    ->required(),
                 Forms\Components\TextInput::make('reward_amount')
                     ->required()
                     ->numeric(),
-                Forms\Components\TextInput::make('status')
+                Forms\Components\Select::make('status')
+                    ->options([
+                        'pending' => 'Pending',
+                        'credited' => 'Credited',
+                        'failed' => 'Failed',
+                    ])
+                    ->default('pending')
                     ->required(),
                 Forms\Components\DateTimePicker::make('credited_at'),
             ]);
@@ -52,7 +60,8 @@ class ReferralResource extends Resource
                 Tables\Columns\TextColumn::make('reward_amount')
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('status'),
+                Tables\Columns\TextColumn::make('status')
+                ->badge(),
                 Tables\Columns\TextColumn::make('credited_at')
                     ->dateTime()
                     ->sortable(),

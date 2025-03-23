@@ -28,11 +28,8 @@ class WithdrawalRequestResource extends Resource
     public static function form(Forms\Form $form): Forms\Form
     {
         return $form
+        ->columns(3)
             ->schema([
-                TextInput::make('uuid')
-                    ->disabled()
-                    ->required(),
-
                 Select::make('store_id')
                     ->relationship('store', 'name')
                     ->searchable()
