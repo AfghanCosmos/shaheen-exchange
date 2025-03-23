@@ -103,10 +103,10 @@ class User extends Authenticatable implements CanLoginDirectly
             }
 
 
-
+            //when user created also created for this user wallet
            Wallet::create([
                 // 'uuid' => self::generateUniqueCodeForWallet(), // Generate a unique UUID
-                'owner_type' => 'App\Models\User', // Specify the related model
+                'owner_type' => 'App\Models\User', // Specify the related model , this is morfh relationship
                 'owner_id' => $id, // Assuming the authenticated user
                 'balance' => 0.00, // Default balance
                 'currency_id' => $currency->id, // Assign the found currency ID
@@ -132,25 +132,6 @@ class User extends Authenticatable implements CanLoginDirectly
 
         return $code;
     }
-
-
-    private static function generateUniqueCodeForWallet()
-    {
-        $letters = 'ABCDEFGHJKLMNPQRSTUVWXYZ'; // Avoids confusing characters
-        $numbers = '0123456789'; // Ensures proper numeric flow
-
-        // Code Format: UXX08239
-        $code = 'W' . substr(str_shuffle($letters), 0, 2) . random_int(10000, 99999);
-
-        // Ensure Uniqueness
-        while (Wallet::where('uuid', $code)->exists()) {
-            $code = 'W' . substr(str_shuffle($letters), 0, 2) . random_int(10000, 99999);
-        }
-
-        return $code;
-    }
-
-
 
 
     public function kyc() {
