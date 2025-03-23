@@ -30,8 +30,7 @@ return new class extends Migration {
             $table->string('pin_code')->nullable();
             $table->string('referral_code')->unique()->nullable();
             $table->string('referred_by')->nullable();
-            $table->enum('status', ['active', 'inactive', 'banned'])->default('active');
-            $table->decimal('commission_percentage', 5, 2)->default(0.0);
+             $table->decimal('commission_percentage', 5, 2)->default(0.0);
 
             // New Additions
             $table->enum('user_type', ['admin', 'customer', 'vendor', 'agent'])->default('customer');
