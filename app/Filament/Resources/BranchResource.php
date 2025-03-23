@@ -24,8 +24,9 @@ class BranchResource extends Resource
     protected static ?string $model = Branch::class;
 
     // Navigation Settings
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
-    protected static ?string $navigationGroup = 'Settings';
+    protected static ?string $navigationIcon = 'heroicon-o-building-library';
+    protected static ?string $navigationGroup = "Settings";
+
 
     // ================================
     // 🔹 FORM DEFINITION

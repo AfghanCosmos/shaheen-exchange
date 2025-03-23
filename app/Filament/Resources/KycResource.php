@@ -26,8 +26,8 @@ class KycResource extends Resource
 {
     protected static ?string $model = Kyc::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-clipboard-document-check';
-    protected static ?string $navigationGroup = 'User Management';
+    protected static ?string $navigationIcon = 'heroicon-o-bolt';
+    protected static ?string $navigationGroup = 'Finance Management';
 
     /**
      * Form Definition - Create & Edit

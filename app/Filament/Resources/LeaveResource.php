@@ -25,7 +25,8 @@ use Filament\Tables\Actions\Action;
 class LeaveResource extends Resource
 {
     protected static ?string $model = Leave::class;
-    // protected static ?string $navigationIcon = 'heroicon-o-calendar';
+    protected static ?string $navigationIcon = 'heroicon-o-banknotes';
+    protected static ?string $navigationGroup = "Settings";
 
     public static function getNavigationGroup(): string
     {

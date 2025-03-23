@@ -15,28 +15,11 @@ class ExpenseCategoryResource extends Resource
 {
     protected static ?string $model = ExpenseCategory::class;
 
+    protected static ?string $navigationIcon = 'heroicon-o-currency-dollar';
+    protected static ?string $navigationGroup = 'Expenses';
 
 
-    public static function getModelLabel(): string
-    {
-        return __('Expense Category');
-    }
 
-    public static function getNavigationGroup(): string
-    {
-        return __('Finance');
-    }
-
-
-    public static function getPluralModelLabel(): string
-    {
-        return __('Expense Categories');
-    }
-
-    public static function getNavigationLabel(): string
-    {
-        return __('Expense Categories');
-    }
 
     public static function form(Form $form): Form
     {

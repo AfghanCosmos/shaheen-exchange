@@ -6,10 +6,15 @@ use App\Filament\Resources\WithdrawalRequestResource\Pages;
 use App\Filament\Resources\WithdrawalRequestResource\RelationManagers;
 use App\Models\WithdrawalRequest;
 use Filament\Forms;
-use Filament\Forms\Form;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Select;
+use Filament\Tables\Columns\BadgeColumn;
+use Filament\Tables\Columns\TextColumn;;
 use Filament\Resources\Resource;
 use Filament\Tables;
-use Filament\Tables\Table;
+use Filament\Forms\Components\DateTimePicker;
+use Filament\Tables\Actions\Action;
+use Filament\Tables\Actions\DeleteAction;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
@@ -17,116 +22,132 @@ class WithdrawalRequestResource extends Resource
 {
     protected static ?string $model = WithdrawalRequest::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'heroicon-o-banknotes';
+    protected static ?string $navigationGroup = 'Finance Management';
 
-    public static function form(Form $form): Form
+    public static function form(Forms\Form $form): Forms\Form
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('uuid')
-                    ->label('UUID')
-                    ->required()
-                    ->maxLength(36),
-                Forms\Components\TextInput::make('store_id')
-                    ->required()
-                    ->numeric(),
-                Forms\Components\TextInput::make('offline_transfer_id')
-                    ->required()
-                    ->numeric(),
-                Forms\Components\TextInput::make('receiver_wallet_id')
-                    ->numeric()
-                    ->default(null),
-                Forms\Components\TextInput::make('receiver_name')
-                    ->required()
-                    ->maxLength(255),
-                Forms\Components\TextInput::make('receiver_verification_id')
-                    ->required()
-                    ->maxLength(255),
-                Forms\Components\TextInput::make('amount')
-                    ->required()
-                    ->numeric(),
-                Forms\Components\TextInput::make('currency_id')
-                    ->required()
-                    ->numeric(),
-                Forms\Components\TextInput::make('status')
+                TextInput::make('uuid')
+                    ->disabled()
                     ->required(),
-                Forms\Components\Toggle::make('verified_by_store')
+
+                Select::make('store_id')
+                    ->relationship('store', 'name')
+                    ->searchable()
                     ->required(),
-                Forms\Components\TextInput::make('admin_id')
+
+                Select::make('offline_transfer_id')
+                    ->relationship('offlineTransfer', 'uuid')
+                    ->searchable()
+                    ->nullable(),
+
+                Select::make('receiver_wallet_id')
+                    ->relationship('wallet', 'uuid')
+                    ->searchable()
+                    ->nullable(),
+
+                TextInput::make('receiver_name')
+                    ->required(),
+
+                TextInput::make('receiver_verification_id')
+                    ->required(),
+
+                TextInput::make('amount')
                     ->numeric()
-                    ->default(null),
-                Forms\Components\DateTimePicker::make('approved_at'),
-                Forms\Components\TextInput::make('commission_amount')
-                    ->required()
-                    ->numeric(),
+                    ->required(),
+
+                Select::make('currency_id')
+                    ->relationship('currency', 'code')
+                    ->required(),
+
+                Select::make('status')
+                    ->options([
+                        'pending' => 'Pending',
+                        'approved' => 'Approved',
+                        'rejected' => 'Rejected',
+                        'completed' => 'Completed',
+                        'failed' => 'Failed',
+                    ])
+                    ->default('pending'),
+
+                TextInput::make('commission_amount')
+                    ->numeric()
+                    ->default(0),
+
+                DateTimePicker::make('approved_at')
+                    ->nullable(),
             ]);
     }
 
-    public static function table(Table $table): Table
+    public static function table(Tables\Table $table): Tables\Table
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('uuid')
-                    ->label('UUID')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('store.name')
-                    ->numeric()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('offline_transfer.receiver_name')
-                    ->numeric()
-                    ->placeholder('N\A')
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('receiverWallet.owner.name')
-                    ->numeric()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('receiver_name')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('receiver_verification_id')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('amount')
-                    ->numeric()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('currency.name')
-                    ->numeric()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('status'),
-                Tables\Columns\IconColumn::make('verified_by_store')
-                    ->boolean(),
-                Tables\Columns\TextColumn::make('admin.name')
-                    ->numeric()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('approved_at')
-                    ->dateTime()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('commission_amount')
-                    ->numeric()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('created_at')
-                    ->dateTime()
+                TextColumn::make('uuid')
                     ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('updated_at')
-                    ->dateTime()
+                    ->searchable(),
+
+                TextColumn::make('store.name')
+                    ->label('Store')
                     ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('deleted_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->searchable(),
+
+                TextColumn::make('receiver_name')
+                    ->label('Receiver Name')
+                    ->sortable(),
+
+                BadgeColumn::make('status')
+                    ->colors([
+                        'pending' => 'warning',
+                        'approved' => 'success',
+                        'rejected' => 'danger',
+                        'completed' => 'success',
+                        'failed' => 'danger',
+                    ]),
+
+                TextColumn::make('amount')
+                    ->label('Amount')
+                    ->sortable(),
+
+                TextColumn::make('commission_amount')
+                    ->label('Commission')
+                    ->sortable(),
+
+                TextColumn::make('created_at')
+                    ->dateTime('d-M-Y H:i')
+                    ->sortable(),
             ])
             ->filters([
-                Tables\Filters\TrashedFilter::make(),
+                Tables\Filters\SelectFilter::make('status')
+                    ->options([
+                        'pending' => 'Pending',
+                        'approved' => 'Approved',
+                        'rejected' => 'Rejected',
+                        'completed' => 'Completed',
+                        'failed' => 'Failed',
+                    ]),
             ])
             ->actions([
-                Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
-            ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                    Tables\Actions\ForceDeleteBulkAction::make(),
-                    Tables\Actions\RestoreBulkAction::make(),
-                ]),
+                Tables\Actions\DeleteAction::make(),
+                Action::make('Approve')
+                    ->icon('heroicon-o-check-circle')
+                    ->action(fn (WithdrawalRequest $record) => $record->update([
+                        'status' => 'approved',
+                        'approved_at' => now(),
+                        'admin_id' => auth()->id()
+                    ]))
+                    ->visible(fn ($record) => $record->status === 'pending'),
+
+                Action::make('Reject')
+                    ->icon('heroicon-o-x-circle')
+                    ->action(fn (WithdrawalRequest $record) => $record->update([
+                        'status' => 'rejected',
+                        'admin_id' => auth()->id()
+                    ]))
+                    ->visible(fn ($record) => $record->status === 'pending'),
             ]);
     }
 

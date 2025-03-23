@@ -33,10 +33,6 @@ class WithdrawalRequest extends Model
         return $this->belongsTo(OfflineTransfer::class);
     }
 
-    public function receiverWallet()
-    {
-        return $this->belongsTo(Wallet::class, 'receiver_wallet_id');
-    }
 
     public function currency()
     {
@@ -47,4 +43,10 @@ class WithdrawalRequest extends Model
     {
         return $this->belongsTo(User::class, 'admin_id');
     }
+
+    public function wallet()
+    {
+        return $this->belongsTo(Wallet::class, 'receiver_wallet_id');
+    }
+
 }
