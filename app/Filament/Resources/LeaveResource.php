@@ -95,7 +95,9 @@ class LeaveResource extends Resource
 
     public static function table(Tables\Table $table): Tables\Table
     {
-        return $table->columns([
+        return $table
+        ->defaultSort('created_at', 'desc')->
+        columns([
             TextColumn::make('user.name')
                 ->label('Employee')
                 ->sortable()

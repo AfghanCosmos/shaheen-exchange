@@ -15,6 +15,7 @@
         "hasnayeen/themes": "^3.0",
         "laravel/framework": "^11.31",
         "laravel/tinker": "^2.9",
+        "mix-code/filament-multi-2fa": "^1.0",
         "rupadana/filament-api-service": "^3.4",
         "xtend-packages/rest-presenter": "^1.1"
     },
