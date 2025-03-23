@@ -6,6 +6,11 @@ use App\Filament\Resources\StoreResource\Pages;
 use App\Models\Store;
 use Carbon\Carbon;
 use Filament\Forms;
+use Filament\Forms\Components\Repeater;
+use Filament\Forms\Components\Section;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
@@ -32,12 +37,6 @@ class StoreResource extends Resource
                 // Store Information
                 Forms\Components\Section::make('Store Information')
                     ->schema([
-                        Forms\Components\TextInput::make('uuid')
-                            ->label('UUID')
-                            ->maxLength(36)
-                            ->disabled()
-                            ->placeholder('Auto-generated UUID'),
-
                         Forms\Components\Select::make('user_id')
                             ->label('User')
                             ->relationship('user', 'name')
@@ -87,7 +86,7 @@ class StoreResource extends Resource
 
                         Forms\Components\TextInput::make('contact_number')
                             ->label('Contact Number')
-                            ->tel()
+                            //->tel()
                             ->placeholder('+1 234 567 890')
                             ->maxLength(255),
 
@@ -136,7 +135,38 @@ class StoreResource extends Resource
                             ->placeholder('Select store status'),
                     ])
                     ->columns(1),
-            ]);
+
+                    Repeater::make('Store Contact')
+                        ->relationship('storeContacts')
+                        ->columnSpanFull()
+                        ->schema([
+                            Section::make('Contact Information')
+                                ->schema([
+                                    Select::make('type')
+                                        ->label('Contact Type')
+                                        ->options([
+                                            'phone' => 'Phone',
+                                            'email' => 'Email',
+                                            'whatsapp' => 'WhatsApp',
+                                            'fax' => 'Fax',
+                                            'telegram' => 'Telegram',
+                                            'skype' => 'Skype',
+                                            'messenger' => 'Messenger',
+                                            'signal' => 'Signal',
+                                            'wechat' => 'WeChat',
+                                            'other' => 'Other',
+                                        ])
+                                        ->default('phone')
+                                        ->required(),
+
+                                    TextInput::make('contact_value')
+                                        ->label('Contact Details')
+                                        ->placeholder('e.g., +1 234 567 8901')
+                                        ->required()
+                                        ->maxLength(255),
+                                    ])->columns(2)
+                                ])
+        ]);
     }
 
     /**

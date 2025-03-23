@@ -105,7 +105,7 @@ class User extends Authenticatable implements CanLoginDirectly
 
 
            Wallet::create([
-                'uuid' => self::generateUniqueCodeForWallet(), // Generate a unique UUID
+                // 'uuid' => self::generateUniqueCodeForWallet(), // Generate a unique UUID
                 'owner_type' => 'App\Models\User', // Specify the related model
                 'owner_id' => $id, // Assuming the authenticated user
                 'balance' => 0.00, // Default balance

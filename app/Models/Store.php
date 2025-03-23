@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Store extends Model
 {
-    
+
     /** @use HasFactory<\Database\Factories\StoreFactory> */
     use HasFactory, SoftDeletes;
 
@@ -23,6 +23,11 @@ class Store extends Model
         return $this->belongsTo(Province::class);
     }
 
+    public function storeContacts()
+    {
+        return $this->hasMany(StoreContact::class);
+    }
+
 
     protected static function boot()
     {
@@ -32,6 +37,10 @@ class Store extends Model
             if (empty($store->uuid)) {
                 $store->uuid = self::generateUniqueCode();
             }
+        });
+
+        static::created(function ($store) {
+            self::createWalletForAFN($store->id);
         });
     }
 
@@ -50,4 +59,27 @@ class Store extends Model
 
         return $code;
     }
+
+    private static function createWalletForAFN($id)
+    {
+        // Find the currency ID for 'AFN'
+        $currency = Currency::where('code', 'AFN')->first();
+
+        if (!$currency) {
+            return response()->json(['error' => 'Currency with code AFN not found'], 404);
+        }
+
+
+
+       Wallet::create([
+            // 'uuid' => self::generateUniqueCodeForWallet(), // Generate a unique UUID
+            'owner_type' => 'App\Models\Store', // Specify the related model
+            'owner_id' => $id, // Assuming the authenticated user
+            'balance' => 0.00, // Default balance
+            'currency_id' => $currency->id, // Assign the found currency ID
+            'status' => 'active',
+        ]);
+
+    }
+
 }
