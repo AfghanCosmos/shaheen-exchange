@@ -17,17 +17,17 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
 
-        // DB::table('currencies')->insert([
-        //     ['code' => 'AFN', 'name' => 'Afghani'],
-        //     ['code' => 'USD', 'name' => 'US Dollar'],
-        // ]);
+        DB::table('currencies')->insert([
+            ['code' => 'AFN', 'name' => 'Afghani'],
+            ['code' => 'USD', 'name' => 'US Dollar'],
+        ]);
 
-        // DB::table('provinces')->insert([
-        //     ['name' => 'Ontario'],
-        //     ['name' => 'Quebec'],
-        //     ['name' => 'British Columbia'],
-        //     ['name' => 'Alberta'],
-        // ]);
+        DB::table('provinces')->insert([
+            ['name' => 'Ontario'],
+            ['name' => 'Quebec'],
+            ['name' => 'British Columbia'],
+            ['name' => 'Alberta'],
+        ]);
 
         // User::factory()->create([
         //     'uuid' => '0011',
@@ -37,7 +37,9 @@ class DatabaseSeeder extends Seeder
         //     'password' => Hash::make('password'),
         //  ]);
 
-        // User::factory(20)->create();
+        User::factory(20)->create();
+
+
 
 
     }
