@@ -25,7 +25,8 @@ class BranchResource extends Resource
 
     // Navigation Settings
     protected static ?string $navigationIcon = 'heroicon-o-building-library';
-    protected static ?string $navigationGroup = 'Transection';
+    protected static ?string $navigationGroup = "Settings";
+
 
     // ================================
     // 🔹 FORM DEFINITION
