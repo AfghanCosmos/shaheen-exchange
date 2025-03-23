@@ -19,7 +19,8 @@ use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Afsakar\FilamentOtpLogin\FilamentOtpLoginPlugin;
 use Rupadana\ApiService\ApiServicePlugin;
-use Rupadana\ApiService\ApiServicePlugin as NewApiServicePlugin;;
+use Rupadana\ApiService\ApiServicePlugin as NewApiServicePlugin;
+use Awcodes\FilamentQuickCreate\QuickCreatePlugin;
 class AdminPanelProvider extends PanelProvider
 {
     public function panel(Panel $panel): Panel
@@ -44,11 +45,14 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->plugins(
                 [
-                    // \Hasnayeen\Themes\ThemesPlugin::make(),
+                    \Hasnayeen\Themes\ThemesPlugin::make(),
                     FilamentOtpLoginPlugin::make(),
                     ApiServicePlugin::make(),
                     NewApiServicePlugin::make(),
-                \EightyNine\Approvals\ApprovalPlugin::make(),
+                    \EightyNine\Approvals\ApprovalPlugin::make(),
+                    QuickCreatePlugin::make()
+                    ->sortBy('navigation')
+                    ->hiddenIcons(),
 
 
                 ]

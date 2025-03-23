@@ -8,6 +8,7 @@ use App\Models\BankAccount;
 class BankAccountSeeder extends Seeder
 {
     /**
+    
      * Run the database seeds.
      */
     public function run(): void
