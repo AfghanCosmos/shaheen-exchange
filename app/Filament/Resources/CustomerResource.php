@@ -95,6 +95,76 @@ class CustomerResource extends Resource
                             ->label('Account Active')
                             ->columnSpanFull()
                             ->default(true),
+
+
+                            Forms\Components\Fieldset::make('User KYC')
+                            ->relationship('kyc')
+                                ->schema([
+                                    Section::make('Information')
+                    ->schema([
+
+                        TextInput::make('govt_id_type')
+                            ->label('Government ID Type')
+                            ->maxLength(255)
+                            ->placeholder('e.g., Passport, Driver’s License'),
+
+                        TextInput::make('govt_id_number')
+                            ->label('Government ID Number')
+                            ->maxLength(255)
+                            ->unique('k_y_c_s', 'govt_id_number', ignoreRecord: true)
+                            ->placeholder('Enter ID Number'),
+                    ])->columns(2),
+
+                Section::make('Document Details')
+                    ->schema([
+                        Forms\Components\FileUpload::make('govt_id_file')
+                            ->label('Government ID File')
+                            ->directory('kyc_documents')
+                            ->preserveFilenames()
+                            ->required()
+                            ->imageEditor()
+                            ->enableDownload()
+                            ->maxSize(2048)
+                            ->acceptedFileTypes(['image/jpeg', 'image/png', 'application/pdf'])
+                            ->visibility('public'), // Ensure uploaded files are accessible
+
+
+
+                        DatePicker::make('issue_date')
+                            ->label('Issue Date')
+                            ->required(),
+
+                        DatePicker::make('expire_date')
+                            ->label('Expiry Date')
+                            ->after('issue_date'), // Ensures expiry date is after issue date
+                    ])->columns(2),
+
+                Section::make('Status & Responses')
+                    ->schema([
+                        Select::make('status')
+                            ->label('Status')
+                            ->native(false)
+                            ->options([
+                                'pending' => 'Pending',
+                                'verified' => 'Verified',
+                                'rejected' => 'Rejected',
+                            ])
+                            ->default('pending')
+                            ->required(),
+
+                        Textarea::make('rejection_reason')
+                            ->label('Rejection Reason')
+                            ->placeholder('Provide a reason for rejection (if applicable)')
+                            ->columnSpanFull()
+                            ->visible(fn ($get) => $get('status') === 'rejected'),
+
+                        Textarea::make('third_party_response')
+                            ->label('Third-Party Response')
+                            ->placeholder('Details from third-party verification (if applicable)')
+                            ->columnSpanFull(),
+                    ]),
+
+                                ]),
                     ])
                     ->columns(3)
             ]);

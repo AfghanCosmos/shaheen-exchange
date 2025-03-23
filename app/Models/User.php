@@ -71,4 +71,10 @@ class User extends Authenticatable implements CanLoginDirectly
 
         return $code;
     }
+
+
+
+    public function kyc() {
+        return $this->hasOne(KYC::class);
+    }
 }
