@@ -9,12 +9,13 @@ use Illuminate\Notifications\Notifiable;
 use Afsakar\FilamentOtpLogin\Models\Contracts\CanLoginDirectly;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Hash;
+use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable implements CanLoginDirectly
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable, SoftDeletes;
-
+    use HasRoles;
     public function canLoginDirectly(): bool
     {
         return true;
@@ -140,7 +141,7 @@ class User extends Authenticatable implements CanLoginDirectly
     public function banks()
     {
         return $this->hasMany(BankAccount::class, 'user_id')
-            ->where('user_type', 'customer'); // 👈 Filter only customer accounts
+          ; // 👈 Filter only customer accounts
     }
 
 }

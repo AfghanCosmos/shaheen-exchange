@@ -53,7 +53,7 @@ class AdminPanelProvider extends PanelProvider
                     QuickCreatePlugin::make()
                     ->sortBy('navigation')
                     ->hiddenIcons(),
-
+                    \BezhanSalleh\FilamentShield\FilamentShieldPlugin::make(),
 
                 ]
             )

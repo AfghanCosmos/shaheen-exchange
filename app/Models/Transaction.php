@@ -17,8 +17,28 @@ class Transaction extends Model
         parent::boot();
 
         static::creating(function ($transaction) {
-            $transaction->uuid = Str::uuid();
+
+            if (empty($transaction->uuid)) {
+                $transaction->uuid = self::generateUniqueCode();
+            }
         });
+
+    }
+
+    private static function generateUniqueCode()
+    {
+        $letters = 'ABCDEFGHJKLMNPQRSTUVWXYZ'; // Avoids confusing characters
+        $numbers = '0123456789'; // Ensures proper numeric flow
+
+        // Code Format: UXX08239
+        $code = 'T' . substr(str_shuffle($letters), 0, 2) . random_int(10000, 99999);
+
+        // Ensure Uniqueness
+        while (self::where('uuid', $code)->exists()) {
+            $code = 'T' . substr(str_shuffle($letters), 0, 2) . random_int(10000, 99999);
+        }
+
+        return $code;
     }
 
     public function wallet()
