@@ -23,10 +23,10 @@ class DatabaseSeeder extends Seeder
         ]);
 
         DB::table('provinces')->insert([
-            ['name' => 'Ontario'],
-            ['name' => 'Quebec'],
-            ['name' => 'British Columbia'],
-            ['name' => 'Alberta'],
+            ['name' => 'Ontario', 'country_id' =>1 ],
+            ['name' => 'Quebec', 'country_id' =>1 ],
+            ['name' => 'British Columbia', 'country_id' =>1 ],
+            ['name' => 'Alberta', 'country_id' =>1 ],
         ]);
 
         // User::factory()->create([

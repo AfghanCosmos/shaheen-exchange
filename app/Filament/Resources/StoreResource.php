@@ -41,6 +41,8 @@ class StoreResource extends Resource
                             ->searchable()
                             ->preload()
                             ->required()
+                    ->createOptionForm(fn(Form $form) => UserResource::form($form))
+
                             ->placeholder('Select a user'),
 
                         Forms\Components\TextInput::make('name')
@@ -48,27 +50,41 @@ class StoreResource extends Resource
                             ->required()
                             ->placeholder('Enter store name')
                             ->maxLength(255),
-
                             Forms\Components\Select::make('country_id')
-                            ->label('Country')
-                            ->relationship('country', 'name')
-                            ->searchable()
-                            ->preload()
-                            ->required()
-                            ->placeholder('Select a country'),
-                    Forms\Components\Select::make('province_id')
-                            ->label('Province')
-                            ->relationship('province', 'name')
-                            ->searchable()
-                            ->preload()
-                            ->required()
-                            ->placeholder('Select a province')
+                                ->label('Country')
+                                ->relationship('country', 'name')
+                                ->searchable()
+                                ->live()
+                                ->preload()
+                                ->required()
+                                ->placeholder('Select a country'),
+                            Forms\Components\Select::make('province_id')
+                                ->label('Province')
+                                ->options(function (callable $get) {
+                                    if ($country = $get('country_id')) {
+                                        return \App\Models\Province::where('country_id', $country)
+                                            ->pluck('name', 'id')
+                                            ->toArray();
+                                    }
+                                    return [];
+                                })
+                                ->searchable()
+                                ->preload()
+                                ->required()
+                                ->placeholder('Select a province')
                             ->createOptionForm([
                                 Forms\Components\TextInput::make('name')
                                     ->label('Province Name')
                                     ->placeholder('Enter province name')
                                     ->required()
                                     ->maxLength(255),
+                                    Forms\Components\Select::make('country_id')
+                            ->label('Country')
+                            ->relationship('country', 'name')
+                            ->searchable()
+                            ->preload()
+                            ->required()
+                            ->placeholder('Select a country'),
                             ])
                             ->createOptionAction(fn (Forms\Components\Actions\Action $action) => $action
                                 ->label('Add Province')
