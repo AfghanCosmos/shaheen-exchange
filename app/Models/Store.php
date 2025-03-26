@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Store extends Model
@@ -26,6 +27,11 @@ class Store extends Model
     public function storeContacts()
     {
         return $this->hasMany(StoreContact::class);
+    }
+
+    public function storeCommissions(): HasMany
+    {
+        return $this->hasMany(StoreCommission::class);
     }
 
 
