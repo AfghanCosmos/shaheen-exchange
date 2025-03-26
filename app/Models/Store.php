@@ -23,6 +23,12 @@ class Store extends Model
         return $this->belongsTo(Province::class);
     }
 
+    public function country()
+    {
+        return $this->belongsTo(Country::class);
+    }
+
+
     public function storeContacts()
     {
         return $this->hasMany(StoreContact::class);
@@ -76,10 +82,16 @@ class Store extends Model
             'owner_type' => 'App\Models\Store', // Specify the related model
             'owner_id' => $id, // Assuming the authenticated user
             'balance' => 0.00, // Default balance
-            'currency_id' => $currency->id, // Assign the found currency ID
+            'currency_id' => $currency?->id ?? 1, // Assign the found currency ID
             'status' => 'active',
         ]);
 
+    }
+
+
+    public function wallets()
+    {
+        return $this->morphOne(Wallet::class, 'owner');
     }
 
 }
