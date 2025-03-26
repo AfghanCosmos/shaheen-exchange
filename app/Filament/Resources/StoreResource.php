@@ -3,6 +3,9 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\StoreResource\Pages;
+use App\Filament\Resources\StoreResource\RelationManagers\WalletsRelationManager;
+
+
 use App\Models\Store;
 use Carbon\Carbon;
 use Filament\Forms;
@@ -25,11 +28,6 @@ class StoreResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-banknotes';
     protected static ?string $navigationGroup = 'Store Management';
 
-    /**
-     * -------------------------
-     *       FORM SCHEMA
-     * -------------------------
-     */
     public static function form(Form $form): Form
     {
         return $form
@@ -51,6 +49,13 @@ class StoreResource extends Resource
                             ->placeholder('Enter store name')
                             ->maxLength(255),
 
+                            Forms\Components\Select::make('country_id')
+                            ->label('Country')
+                            ->relationship('country', 'name')
+                            ->searchable()
+                            ->preload()
+                            ->required()
+                            ->placeholder('Select a country'),
                     Forms\Components\Select::make('province_id')
                             ->label('Province')
                             ->relationship('province', 'name')
@@ -84,11 +89,7 @@ class StoreResource extends Resource
                             ->placeholder('e.g., 123 Main St, City, Province')
                             ->columnSpanFull(),
 
-                        Forms\Components\TextInput::make('contact_number')
-                            ->label('Contact Number')
-                            //->tel()
-                            ->placeholder('+1 234 567 890')
-                            ->maxLength(255),
+
 
                         Forms\Components\TextInput::make('latitude')
                             ->label('Latitude')
@@ -247,7 +248,9 @@ class StoreResource extends Resource
      */
     public static function getRelations(): array
     {
-        return [];
+        return [
+            WalletsRelationManager::class
+        ];
     }
 
     /**

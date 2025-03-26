@@ -11,6 +11,10 @@ class Province extends Model
         'name',
     ];
 
+    public function country()
+    {
+        return $this->belongsTo(Country::class);
+    }
     public function warehouses()
     {
         return $this->hasMany(Warehouse::class);

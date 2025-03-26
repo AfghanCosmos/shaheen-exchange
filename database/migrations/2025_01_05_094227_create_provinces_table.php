@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('provinces', function (Blueprint $table) {
             $table->id(); // Auto-incrementing primary key
             $table->string('name')->unique(); // Province name (unique constraint for data integrity)
+            $table->foreignId('country_id'); // Province name (unique constraint for data integrity)
             $table->timestamps(); // Adds created_at and updated_at columns
         });
     }

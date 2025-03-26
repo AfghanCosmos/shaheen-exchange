@@ -27,6 +27,28 @@ class ProvinceResource extends Resource
                 Forms\Components\TextInput::make('name')
                     ->required()
                     ->maxLength(255),
+
+                    Forms\Components\Select::make('country_id')
+                            ->label('Country')
+                            ->relationship('country', 'name')
+                            ->searchable()
+                            ->preload()
+                            ->required()
+                            ->placeholder('Select a country')
+                            ->createOptionForm([
+                                Forms\Components\TextInput::make('name')
+                                    ->label('Country Name')
+                                    ->placeholder('Enter country name')
+                                    ->required()
+                                    ->maxLength(255),
+                            ])
+                            ->createOptionAction(fn (Forms\Components\Actions\Action $action) => $action
+                                ->label('Add Country')
+                                ->icon('heroicon-o-plus-circle') // Icon for the action
+                                ->modalHeading('Create New Country') // Modal Title
+                                ->modalWidth('md') // Medium modal size
+                                ->color('primary') // Button color
+                            )
             ]);
     }
 
@@ -36,6 +58,9 @@ class ProvinceResource extends Resource
         ->defaultSort('created_at', 'desc')
             ->columns([
                 Tables\Columns\TextColumn::make('name')
+                    ->searchable(),
+
+                    Tables\Columns\TextColumn::make('country.name')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
