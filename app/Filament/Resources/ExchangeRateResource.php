@@ -41,11 +41,17 @@ class ExchangeRateResource extends Resource
                     ->native(false)
                     ->required(),
 
-                Forms\Components\TextInput::make('rate')
-                    ->label('Exchange Rate')
+                Forms\Components\TextInput::make('buy_rate')
+                    ->label('Buy Rate')
                     ->required()
                     ->numeric()
-                    ->placeholder('Enter exchange rate'),
+                    ->placeholder('Enter buy rate'),
+
+                Forms\Components\TextInput::make('sell_rate')
+                    ->label('Sell Rate')
+                    ->required()
+                    ->numeric()
+                    ->placeholder('Enter sell rate'),
                 Forms\Components\DatePicker::make('date')
                     ->label('Exchange Date')
                     ->required()
@@ -67,7 +73,10 @@ class ExchangeRateResource extends Resource
                     ->label('To Currency')
                     ->searchable()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('rate')
+                Tables\Columns\TextColumn::make('buy_rate')
+                    ->numeric()
+                    ->sortable(),
+                    Tables\Columns\TextColumn::make('sell_rate')
                     ->numeric()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('date')
