@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 use App\Models\User;
 use App\Models\Province;
+use App\Models\Country;
+
 
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Store>
@@ -23,9 +25,12 @@ class StoreFactory extends Factory
             'uuid' => Str::uuid(),
             'user_id' => User::inRandomOrder()->value('id') ?? User::factory()->create()->id,
             'province_id' => Province::inRandomOrder()->value('id') ?? 1,
+            'country_id' => Country::inRandomOrder()->value('id') ?? 1,
             'name' => $this->faker->company,
             'address' => $this->faker->address,
             'contact_number' => $this->faker->optional()->phoneNumber,
+            'second_contact_number' => $this->faker->optional()->phoneNumber,
+            'email' => $this->faker->unique()->safeEmail,
             'latitude' => $this->faker->optional()->latitude(-90, 90),
             'longitude' => $this->faker->optional()->longitude(-180, 180),
             'open_time' => $this->faker->time('H:i:s'),

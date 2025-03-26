@@ -11,13 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('store_commission_ranges', function (Blueprint $table) {
+        Schema::create('hawlas', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('store_id');
-            $table->foreignId('currency_id');
-            $table->string('from');
-            $table->string('to');
-            $table->integer('commission');
             $table->timestamps();
         });
     }
@@ -27,6 +22,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('store_commission_ranges');
+        Schema::dropIfExists('hawlas');
     }
 };
