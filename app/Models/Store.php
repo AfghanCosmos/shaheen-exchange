@@ -35,10 +35,7 @@ class Store extends Model
         return $this->hasMany(StoreContact::class);
     }
 
-    public function storeCommissions(): HasMany
-    {
-        return $this->hasMany(StoreCommission::class);
-    }
+   
 
 
     protected static function boot()
@@ -98,6 +95,16 @@ class Store extends Model
     public function wallets()
     {
         return $this->morphOne(Wallet::class, 'owner');
+    }
+
+    public function storeCommissionRanges()
+    {
+        return $this->hasMany(StoreCommissionRange::class);
+    }
+
+    public function storeCommissions()
+    {
+        return $this->hasMany(StoreCommission::class);
     }
 
 }
