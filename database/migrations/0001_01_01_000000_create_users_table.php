@@ -25,7 +25,6 @@ return new class extends Migration {
             // Social Media Login
             $table->string('facebook_id')->nullable();
             $table->string('google_id')->nullable();
-
             // Security and referral
             $table->string('pin_code')->nullable();
             $table->string('referral_code')->unique()->nullable();

@@ -15,9 +15,12 @@ return new class extends Migration {
             $table->uuid('uuid')->unique();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->string('name');
-            $table->foreignId('province_id');
+            $table->foreignId('province_id')->nullable();
+            $table->foreignId('country_id')->nullable();
             $table->text('address');
-            $table->string('contact_number')->nullable();
+            $table->string('contact_number');
+            $table->string('second_contact_number')->nullable();
+            $table->string('email')->nullable();
             $table->decimal('latitude', 10, 8)->nullable();
             $table->decimal('longitude', 11, 8)->nullable();
             $table->time('open_time')->nullable();
