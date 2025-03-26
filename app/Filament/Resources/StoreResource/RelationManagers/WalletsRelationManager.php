@@ -1,6 +1,8 @@
 <?php
 
 namespace App\Filament\Resources\StoreResource\RelationManagers;
+use App\Filament\Resources\WalletResource;
+
 
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -16,24 +18,13 @@ class WalletsRelationManager extends RelationManager
 
     public function form(Form $form): Form
     {
-        return $form
-            ->schema([
-                Forms\Components\TextInput::make('amount')
-                    ->required()
-                    ->maxLength(255),
-            ]);
+        return WalletResource::form($form);
     }
 
     public function table(Table $table): Table
     {
-        return $table
-            ->recordTitleAttribute('amount')
-            ->columns([
-                Tables\Columns\TextColumn::make('amount'),
-            ])
-            ->filters([
-                //
-            ])
+        return WalletResource::table($table)
+
             ->headerActions([
                 Tables\Actions\CreateAction::make(),
             ])

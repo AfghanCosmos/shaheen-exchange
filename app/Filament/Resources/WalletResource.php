@@ -4,6 +4,10 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\WalletResource\Pages;
 use App\Models\Wallet;
+use App\Models\User;
+use App\Models\Store;
+use App\Filament\Resources\StoreResource\RelationManagers\WalletsRelationManager;
+
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Forms\Components\TextInput;
@@ -15,7 +19,7 @@ use Filament\Tables\Table;
 use Filament\Tables\Columns\BadgeColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
-
+use Filament\Forms\Components\MorphToSelect;
 class WalletResource extends Resource
 {
     protected static ?string $model = Wallet::class;
@@ -32,24 +36,16 @@ class WalletResource extends Resource
             ->schema([
                 Section::make('Wallet Information')
                     ->schema([
-                        TextInput::make('uuid')
-                            ->label('UUID')
-                            ->readOnly()
-                            ->default(fn () => (string) \Illuminate\Support\Str::uuid())
-                            ->dehydrated(),
 
-                        Select::make('owner_type')
-                            ->label('Owner Type')
-                            ->options([
-                                'App\\Models\\User' => 'User',
-                                'App\\Models\\Store' => 'Store',
-                            ])
-                            ->required(),
-
-                        TextInput::make('owner_id')
-                            ->label('Owner ID')
-                            ->numeric()
-                            ->required(),
+                       Forms\Components\MorphToSelect::make('owner')
+                       ->columnSpanFull()
+                       ->hiddenOn(WalletsRelationManager::class)
+                        ->types([
+                            MorphToSelect\Type::make(User::class)
+                                ->titleAttribute('name'),
+                            MorphToSelect\Type::make(Store::class)
+                                ->titleAttribute('name'),
+                         ]),
 
                         TextInput::make('balance')
                             ->label('Balance')
@@ -74,7 +70,7 @@ class WalletResource extends Resource
                             ->default('active')
                             ->required(),
                     ])
-                    ->columns(2),
+                    ->columns(3),
             ]);
     }
 
@@ -93,10 +89,13 @@ class WalletResource extends Resource
 
                 TextColumn::make('owner_type')
                     ->label('Owner Type')
+                    ->hiddenOn(WalletsRelationManager::class)
+
                     ->sortable(),
 
                 TextColumn::make('owner.name')
                     ->label('Owner ID')
+                       ->hiddenOn(WalletsRelationManager::class)
                     ->sortable(),
 
                 TextColumn::make('balance')
