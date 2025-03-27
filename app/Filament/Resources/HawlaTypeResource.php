@@ -2,32 +2,30 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\CommissionTypeResource\Pages;
-use App\Filament\Resources\CommissionTypeResource\RelationManagers;
-use App\Models\CommissionType;
+use App\Filament\Resources\HawlaTypeResource\Pages;
+use App\Filament\Resources\HawlaTypeResource\RelationManagers;
+use App\Models\HawlaType;
 use Filament\Forms;
-use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
-use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
-class CommissionTypeResource extends Resource
+class HawlaTypeResource extends Resource
 {
-    protected static ?string $model = CommissionType::class;
+    protected static ?string $model = HawlaType::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
     protected static ?string $navigationGroup = 'Configuration';
+
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                TextInput::make('name')
-                    ->label('Commission Type Name')
+                Forms\Components\TextInput::make('name')
                     ->required()
                     ->columnSpanFull()
                     ->maxLength(255),
@@ -37,16 +35,23 @@ class CommissionTypeResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-        ->columns([
-            TextColumn::make('name')->sortable()->searchable(),
-            TextColumn::make('created_at')->dateTime()->label('Created'),
-            TextColumn::make('updated_at')->dateTime()->label('Updated'),
-        ])
-        ->defaultSort('id', 'desc')
+            ->columns([
+                Tables\Columns\TextColumn::make('name')
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('created_at')
+                    ->dateTime()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('updated_at')
+                    ->dateTime()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+            ])
             ->filters([
                 //
             ])
             ->actions([
+                Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([
@@ -66,9 +71,10 @@ class CommissionTypeResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListCommissionTypes::route('/'),
-            'create' => Pages\CreateCommissionType::route('/create'),
-            'edit' => Pages\EditCommissionType::route('/{record}/edit'),
+            'index' => Pages\ListHawlaTypes::route('/'),
+            'create' => Pages\CreateHawlaType::route('/create'),
+            'view' => Pages\ViewHawlaType::route('/{record}'),
+            'edit' => Pages\EditHawlaType::route('/{record}/edit'),
         ];
     }
 }

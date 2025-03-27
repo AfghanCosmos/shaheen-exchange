@@ -29,13 +29,13 @@ class DatabaseSeeder extends Seeder
             ['name' => 'Alberta', 'country_id' =>1 ],
         ]);
 
-        // User::factory()->create([
-        //     'uuid' => '0011',
-        //     'name' => 'khan',
-        //     'email' => 'khan@gmail.com',
-        //     'phone_number' => '1234567890',
-        //     'password' => Hash::make('password'),
-        //  ]);
+        User::factory()->create([
+            'uuid' => '0011',
+            'name' => 'khan',
+            'email' => 'admin@gmail.com',
+            'phone_number' => '1234567890',
+            'password' => Hash::make('password'),
+         ]);
 
         User::factory(20)->create();
 
