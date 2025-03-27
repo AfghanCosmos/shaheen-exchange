@@ -30,6 +30,7 @@ class StoreCommissionResource extends Resource
                             ->searchable()
                             ->native(false)
                             ->required()
+                            ->createOptionForm(fn(Form $form) => StoreResource::form($form))
                             ->placeholder('Select a store...'),
 
                         Forms\Components\Select::make('commission_type_id')
@@ -39,6 +40,7 @@ class StoreCommissionResource extends Resource
                             ->searchable()
                             ->native(false)
                             ->required()
+                            ->createOptionForm(fn(Form $form) => CommissionTypeResource::form($form))
                             ->placeholder('Select a type...'),
 
                         Forms\Components\Select::make('currency_id')
@@ -48,6 +50,7 @@ class StoreCommissionResource extends Resource
                             ->searchable()
                             ->native(false)
                             ->required()
+                            ->createOptionForm(fn(Form $form) => CurrencyResource::form($form))
                             ->placeholder('Select a currency...'),
 
                         Forms\Components\TextInput::make('commission')
