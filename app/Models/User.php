@@ -138,6 +138,11 @@ class User extends Authenticatable implements CanLoginDirectly
         return $this->hasOne(KYC::class);
     }
 
+
+    public function store() {
+        return $this->hasOne(Store::class);
+    }
+
     public function banks()
     {
         return $this->hasMany(BankAccount::class, 'user_id')
