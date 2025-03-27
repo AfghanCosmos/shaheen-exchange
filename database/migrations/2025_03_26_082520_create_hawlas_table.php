@@ -14,41 +14,27 @@ return new class extends Migration
         Schema::create('hawlas', function (Blueprint $table) {
             $table->id();
             $table->uuid('uuid')->unique();
-
-            // Sender information
+            $table->datetime('date');
+            $table->foreignId('hawla_type_id')->nullable();
             $table->string('sender_name');
             $table->string('sender_phone');
-
-            // Receiver information
             $table->string('receiver_name');
-            $table->string('receiver_email')->nullable();
+            $table->string('receiver_father')->nullable();
+            $table->foreignId('sender_store_id');
+            $table->float('given_amount', 16, 2);
+            $table->foreignId('given_amount_currency_id');
+            $table->foreignId('receiving_amount_currency_id');
+            $table->float('receiving_amount', 16, 2);
+            $table->float('exchange_rate')->nullable();
+            $table->float('commission')->nullable();
+            $table->enum('commission_taken_by', ['sender_store', 'receiver_store'])->nullable();
             $table->string('receiver_phone_number', 20)->nullable();
             $table->text('receiver_address')->nullable();
-
-            // Transfer information
-            $table->decimal('amount', 16, 2);
-            $table->foreignId('sent_currency_id')->constrained('currencies')->onDelete('restrict');
-            $table->foreignId('given_currency_id')->constrained('currencies')->onDelete('restrict');
-
-            // Store-to-store relation (optional)
-            $table->foreignId('from_store_id')->nullable()->constrained('stores')->onDelete('set null');
-            $table->foreignId('to_store_id')->nullable()->constrained('stores')->onDelete('set null');
-
-            // Status tracking
-            $table->enum('status', [
-                'pending',
-                'waiting_for_receiver',
-                'store_requested',
-                'admin_approved',
-                'completed',
-                'failed'
-            ])->default('pending');
-
-            // Extra info
+            $table->foreignId('receiver_store_id');
             $table->text('note')->nullable();
-            $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('set null');
-
-            // Time tracking
+            $table->foreignId('created_by');
+            $table->string('receiver_verification_document')->nullable();
+            $table->foreignId('status');
             $table->timestamps();
             $table->softDeletes();
         });
