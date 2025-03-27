@@ -39,6 +39,12 @@ class DatabaseSeeder extends Seeder
 
         User::factory(20)->create();
 
+        $this->call([
+            HawlaTypeSeeder::class,
+            HawlaStatusSeeder::class,
+            HawlaSeeder::class,
+        ]);
+
 
 
 

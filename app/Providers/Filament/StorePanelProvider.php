@@ -35,8 +35,14 @@ class StorePanelProvider extends PanelProvider
             ])
             ->discoverWidgets(in: app_path('Filament/Store/Widgets'), for: 'App\\Filament\\Store\\Widgets')
             ->widgets([
-                Widgets\AccountWidget::class,
-                Widgets\FilamentInfoWidget::class,
+                // Widgets\AccountWidget::class,
+                // Widgets\FilamentInfoWidget::class,
+                \App\Filament\Widgets\HawlaOverview::class,
+                \App\Filament\Widgets\HawlaChart::class,
+                \App\Filament\Widgets\HawlaByStoreChart::class,
+
+
+
             ])
             ->middleware([
                 EncryptCookies::class,

@@ -144,4 +144,9 @@ class User extends Authenticatable implements CanLoginDirectly
           ; // 👈 Filter only customer accounts
     }
 
+    public function store()
+    {
+        return $this->belongsTo(Store::class);
+    }
+
 }
