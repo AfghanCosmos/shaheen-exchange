@@ -1,8 +1,6 @@
 <?php
 
 namespace App\Filament\Resources\StoreResource\RelationManagers;
-use App\Filament\Resources\WalletResource;
-
 
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -11,19 +9,20 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use App\Filament\Resources\StoreCommissionResource;
 
-class WalletsRelationManager extends RelationManager
+class StoreCommissionsRelationManager extends RelationManager
 {
-    protected static string $relationship = 'wallets';
+    protected static string $relationship = 'storeCommissions';
 
     public function form(Form $form): Form
     {
-        return WalletResource::form($form);
+        return StoreCommissionResource::form($form);
     }
 
     public function table(Table $table): Table
     {
-        return WalletResource::table($table)
+        return StoreCommissionResource::table($table)
 
             ->headerActions([
                 Tables\Actions\CreateAction::make(),

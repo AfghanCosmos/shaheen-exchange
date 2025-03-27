@@ -10,6 +10,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use App\Filament\Resources\StoreResource\RelationManagers\StoreCommissionsRelationManager;
 
 class StoreCommissionResource extends Resource
 {
@@ -29,6 +30,8 @@ class StoreCommissionResource extends Resource
                             ->preload()
                             ->searchable()
                             ->native(false)
+                       ->hiddenOn(StoreCommissionsRelationManager::class)
+                            ->columnSpanFull()
                             ->required()
                             ->createOptionForm(fn(Form $form) => StoreResource::form($form))
                             ->placeholder('Select a store...'),
@@ -61,7 +64,7 @@ class StoreCommissionResource extends Resource
                             ->placeholder('Enter commission (e.g. 5, 10.5)')
                             ->suffix('%'),
                     ])
-                    ->columns(2),
+                    ->columns(3),
             ]);
     }
 

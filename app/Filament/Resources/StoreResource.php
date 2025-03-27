@@ -4,6 +4,9 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\StoreResource\Pages;
 use App\Filament\Resources\StoreResource\RelationManagers\WalletsRelationManager;
+use App\Filament\Resources\StoreResource\RelationManagers\StoreCommissionRangesRelationManager;
+use App\Filament\Resources\StoreResource\RelationManagers\StoreCommissionsRelationManager;
+
 
 
 use App\Models\Store;
@@ -265,7 +268,10 @@ class StoreResource extends Resource
     public static function getRelations(): array
     {
         return [
-            WalletsRelationManager::class
+            WalletsRelationManager::class,
+            StoreCommissionsRelationManager::class,
+            StoreCommissionRangesRelationManager::class
+            
         ];
     }
 
