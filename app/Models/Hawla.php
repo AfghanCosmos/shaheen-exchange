@@ -11,31 +11,6 @@ class Hawla extends Model
 {
     use SoftDeletes, HasFactory;
 
-    protected $fillable = [
-        'uuid',
-        'date',
-        'hawla_type_id',
-        'sender_name',
-        'sender_phone',
-        'receiver_name',
-        'receiver_father',
-        'sender_store_id',
-        'given_amount',
-        'given_amount_currency_id',
-        'receiving_amount_currency_id',
-        'receiving_amount',
-        'exchange_rate',
-        'commission',
-        'commission_taken_by',
-        'receiver_phone_number',
-        'receiver_address',
-        'receiver_store_id',
-        'note',
-        'created_by',
-        'receiver_verification_document',
-        'status',
-    ];
-
     protected static function boot()
     {
         parent::boot();
@@ -98,7 +73,7 @@ class Hawla extends Model
 
     public function status(): BelongsTo
     {
-        return $this->belongsTo(HawlaStatus::class, 'status');
+        return $this->belongsTo(HawlaStatus::class, 'status_id');
     }
 
 

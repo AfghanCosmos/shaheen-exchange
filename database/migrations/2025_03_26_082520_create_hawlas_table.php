@@ -27,14 +27,14 @@ return new class extends Migration
             $table->float('receiving_amount', 16, 2);
             $table->float('exchange_rate')->nullable();
             $table->float('commission')->nullable();
-            $table->enum('commission_taken_by', ['sender_store', 'receiver_store'])->nullable();
+            $table->enum('commission_taken_by', ['sender_store', 'receiver_store'])->default('sender_store');
             $table->string('receiver_phone_number', 20)->nullable();
             $table->text('receiver_address')->nullable();
             $table->foreignId('receiver_store_id');
             $table->text('note')->nullable();
             $table->foreignId('created_by');
             $table->string('receiver_verification_document')->nullable();
-            $table->foreignId('status');
+            $table->foreignId('status_id');
             $table->timestamps();
             $table->softDeletes();
         });
