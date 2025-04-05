@@ -73,28 +73,8 @@ class StoreResource extends Resource
                                 ->searchable()
                                 ->preload()
                                 ->required()
-                                ->placeholder('Select a province')
-                            ->createOptionForm([
-                                Forms\Components\TextInput::make('name')
-                                    ->label('Province Name')
-                                    ->placeholder('Enter province name')
-                                    ->required()
-                                    ->maxLength(255),
-                                    Forms\Components\Select::make('country_id')
-                            ->label('Country')
-                            ->relationship('country', 'name')
-                            ->searchable()
-                            ->preload()
-                            ->required()
-                            ->placeholder('Select a country'),
-                            ])
-                            ->createOptionAction(fn (Forms\Components\Actions\Action $action) => $action
-                                ->label('Add Province')
-                                ->icon('heroicon-o-plus-circle') // Icon for the action
-                                ->modalHeading('Create New Province') // Modal Title
-                                ->modalWidth('md') // Medium modal size
-                                ->color('primary') // Button color
-                            )
+                                ->placeholder('Select a province'),
+
                     ])
                     ->columns(2),
 
@@ -150,6 +130,7 @@ class StoreResource extends Resource
                                 'inactive' => 'Inactive',
                                 'pending' => 'Pending',
                             ])
+                            ->native(false)
                             ->required()
                             ->placeholder('Select store status'),
                     ])

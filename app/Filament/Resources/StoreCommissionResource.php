@@ -62,7 +62,13 @@ class StoreCommissionResource extends Resource
                             ->required()
                             ->minValue(0)
                             ->placeholder('Enter commission (e.g. 5, 10.5)')
-                            ->suffix('%'),
+                            ,
+
+                            Forms\Components\Toggle::make('is_fix')
+                                ->label('Is Fix')
+                                ->default(false),
+
+
                     ])
                     ->columns(3),
             ]);
@@ -97,10 +103,17 @@ class StoreCommissionResource extends Resource
                         'danger' => 'AFN',
                     ]),
 
+
+                Tables\Columns\BooleanColumn::make('is_fix')
+                    ->label('Is Fix')
+                    ->trueIcon('heroicon-s-check-circle')
+                    ->falseIcon('heroicon-s-x-circle'),
+
                 Tables\Columns\TextColumn::make('commission')
                     ->label('Commission')
                     ->sortable()
-                    ->formatStateUsing(fn ($state) => number_format($state, 2) . '%'),
+                    ->formatStateUsing(fn ($state) => number_format($state, 2)
+                ),
 
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Created At')

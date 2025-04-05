@@ -15,6 +15,7 @@ return new class extends Migration
             $table->foreignId('commission_type_id');
             $table->foreignId('currency_id');
             $table->integer('commission');
+            $table->boolean('is_fix')->default(1);
             $table->timestamps();
         });
     }
