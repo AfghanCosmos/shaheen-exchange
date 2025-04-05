@@ -50,6 +50,10 @@ class CustomerResource extends Resource
         return "Customers";
     }
 
+    public static function getNavigationGroup(): ?string
+    {
+        return 'Customer Management';
+    }
 
     public static function getNavigationBadge(): ?string
     {

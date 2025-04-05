@@ -17,8 +17,7 @@ class OfflineTransferResource extends Resource
 {
     protected static ?string $model = OfflineTransfer::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
-    protected static ?string $navigationGroup = 'Transection';
+    protected static ?string $navigationGroup = 'Transaction';
 
     public static function form(Form $form): Form
     {

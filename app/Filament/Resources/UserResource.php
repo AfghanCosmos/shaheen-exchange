@@ -17,8 +17,7 @@ use Filament\Forms\Components\Section;
 class UserResource extends Resource
 {
     protected static ?string $model = User::class;
-    protected static ?string $navigationIcon = 'heroicon-o-user-plus';
-    // protected static ?string $navigationGroup = "Settings";
+    protected static ?string $navigationGroup = "Human Resources";
 
     public static function form(Form $form): Form
     {

@@ -25,7 +25,6 @@ class BankAccountResource extends Resource
 
 
 
-    protected static ?string $navigationIcon = 'heroicon-o-arrow-left-end-on-rectangle';
     protected static ?string $navigationGroup = 'Finance Management';
 
     /**

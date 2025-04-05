@@ -14,8 +14,7 @@ class ExchangeRateResource extends Resource
 {
     protected static ?string $model = ExchangeRate::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-document-currency-dollar';
-    protected static ?string $navigationGroup = 'Transection';
+    protected static ?string $navigationGroup = 'Settings';
 
     public static function form(Form $form): Form
     {

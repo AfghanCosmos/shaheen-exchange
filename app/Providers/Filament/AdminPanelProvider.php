@@ -50,8 +50,8 @@ class AdminPanelProvider extends PanelProvider
                 [
                     // \Hasnayeen\Themes\ThemesPlugin::make(),
                     FilamentOtpLoginPlugin::make(),
-                    ApiServicePlugin::make(),
-                    NewApiServicePlugin::make(),
+                    // ApiServicePlugin::make(),
+                    // NewApiServicePlugin::make(),
                     \EightyNine\Approvals\ApprovalPlugin::make(),
                     QuickCreatePlugin::make()
                     ->sortBy('navigation')
@@ -61,15 +61,56 @@ class AdminPanelProvider extends PanelProvider
                 ]
             )
             ->navigationGroups([
+
+            NavigationGroup::make()
+                ->label(fn(): string => __('Customer Management'))
+                ->icon('heroicon-o-user-group')
+                ->collapsed(),
+
+                NavigationGroup::make()
+                ->label(fn(): string => __('Hawla Management'))
+                ->icon('heroicon-o-archive-box')
+                ->collapsed(),
+
+
+            NavigationGroup::make()
+                ->label(fn(): string => __('Transaction'))
+                ->icon('heroicon-o-cube-transparent')
+
+                ->collapsed(),
+
+
+                NavigationGroup::make()
+                ->label(fn(): string => __('Finance Management'))
+                ->icon('heroicon-o-wallet')
+                ->collapsed(),
+
                  NavigationGroup::make()
                 ->label(fn(): string => __('Store Management'))
                 ->icon('heroicon-o-building-storefront')
                 ->collapsed(),
 
                 NavigationGroup::make()
+                    ->label(fn(): string => __('Human Resources'))
+                    ->icon('heroicon-o-users')
+                    ->collapsed(),
+
+                    NavigationGroup::make()
+                    ->label(fn(): string => __('Finance'))
+                    ->icon('heroicon-o-banknotes')
+                    ->collapsed(),
+
+
+
+                NavigationGroup::make()
                 ->label(fn(): string => __('Settings'))
                 ->icon('heroicon-o-cog-6-tooth')
                 ->collapsed(),
+
+                NavigationGroup::make()
+                    ->label(fn(): string => __('Configuration'))
+                    // ->icon('heroicon-o-cog-6-tooth')
+                    ->collapsed(),
 
 
             ])
