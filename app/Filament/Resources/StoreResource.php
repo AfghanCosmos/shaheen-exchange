@@ -216,11 +216,6 @@ class StoreResource extends Resource
                     ->label('Province')
                     ->sortable()
                     ->searchable(),
-
-                Tables\Columns\TextColumn::make('contact_number')
-                    ->label('Contact Number')
-                    ->searchable(),
-
                 Tables\Columns\IconColumn::make('is_closed')
                     ->label('Closed?')
                     ->boolean(),

@@ -29,31 +29,35 @@ class StoreCommissionRangeResource extends Resource
                 Forms\Components\Select::make('store_id')
                     ->label('Store')
                     ->relationship('store', 'name')
+                    ->searchable()
                     ->required()
-                    ->columnSpan(2),
+                    ->preload()
+                    ->columnSpan(3),
                 Forms\Components\Select::make('currency_id')
                     ->label('Currency ID')
                     ->relationship('currency', 'name')
                     ->required()
-                    ->columnSpan(2),
+                    ->searchable()
+                    ->preload()
+                    ->columnSpan(3),
                 Forms\Components\TextInput::make('from')
                     ->label('From Value')
                     ->required()
-                    ->maxLength(255)
-                    ->hint('Specify the starting value of the range.'),
+                    ->columnSpan(2)
+                    ->maxLength(255),
                 Forms\Components\TextInput::make('to')
                     ->label('To Value')
                     ->required()
-                    ->maxLength(255)
-                    ->hint('Specify the ending value of the range.'),
+                    ->columnSpan(2)
+
+                    ->maxLength(255),
                 Forms\Components\TextInput::make('commission')
                     ->label('Commission')
                     ->required()
                     ->numeric()
-                    ->prefix('$')
-                    ->helperText('Enter the commission amount in USD.'),
+                    ->columnSpan(2) ,
             ])
-            ->columns(2);
+            ->columns(6);
 
     }
     public static function table(Table $table): Table
@@ -69,7 +73,7 @@ class StoreCommissionRangeResource extends Resource
             Tables\Columns\TextColumn::make('to')
                 ->label('To Value'),
                 Tables\Columns\TextColumn::make('commission')
-                 
+
                     ->label('Commission'),
             ])
             ->filters([
