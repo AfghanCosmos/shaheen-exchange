@@ -168,7 +168,6 @@ class HawlaResource extends Resource
                         ]),
 
                         Forms\Components\Section::make()
-                        ->col
                         ->columns(1)
                                     ->schema([
 
