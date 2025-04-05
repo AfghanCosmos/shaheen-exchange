@@ -21,6 +21,24 @@ class Wallet extends Model
         });
     }
 
+    public function hawlasAsSender()
+    {
+        if ($this->owner_type !== Store::class) {
+            return $this->hasMany(Hawla::class, 'sender_store_id', 'owner_id');
+        }
+
+        return $this->owner->hasMany(Hawla::class, 'sender_store_id');
+    }
+
+    public function hawlasAsReceiver()
+    {
+        if ($this->owner_type !== Store::class) {
+            return $this->hasMany(Hawla::class, 'receiver_store_id', 'owner_id');
+        }
+
+        return $this->owner->hasMany(Hawla::class, 'receiver_store_id');
+    }
+
     private static function generateUniqueCode()
     {
         $letters = 'ABCDEFGHJKLMNPQRSTUVWXYZ'; // Avoids confusing characters
