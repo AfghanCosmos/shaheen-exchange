@@ -271,7 +271,7 @@ public static function table(Table $table): Table
                 ->sortable()
                 ->toggleable(isToggledHiddenByDefault: true),
         ])
-     
+
         ->actions([
             Tables\Actions\ViewAction::make(),
             Tables\Actions\EditAction::make(),

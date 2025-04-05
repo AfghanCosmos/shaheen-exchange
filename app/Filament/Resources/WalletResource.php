@@ -200,8 +200,7 @@ class WalletResource extends Resource
                             TextEntry::make('givenCurrency.code')->label('Currency'),
                             TextEntry::make('created_at')->label('Date')->dateTime(),
                         ])
-                        ->columns(3)
-                        ->limit(5),
+                        ->columns(3),
 
                     RepeatableEntry::make('hawlasAsReceiver')
                         ->label(__('Received Hawlas'))
@@ -213,8 +212,7 @@ class WalletResource extends Resource
                             TextEntry::make('receivingCurrency.code')->label('Currency'),
                             TextEntry::make('created_at')->label('Date')->dateTime(),
                         ])
-                        ->columns(3)
-                        ->limit(5),
+                        ->columns(3),
                 ]),
         ]);
     }
