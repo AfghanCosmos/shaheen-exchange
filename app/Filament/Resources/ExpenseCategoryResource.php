@@ -15,8 +15,7 @@ class ExpenseCategoryResource extends Resource
 {
     protected static ?string $model = ExpenseCategory::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-currency-dollar';
-    protected static ?string $navigationGroup = 'Expenses';
+    protected static ?string $navigationGroup = 'Finance';
 
 
 

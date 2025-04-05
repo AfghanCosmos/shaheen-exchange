@@ -22,7 +22,7 @@ class WithdrawalRequestResource extends Resource
 {
     protected static ?string $model = WithdrawalRequest::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-banknotes';
+    // protected static ?string $navigationIcon = 'heroicon-o-banknotes';
     protected static ?string $navigationGroup = 'Finance Management';
 
     public static function form(Forms\Form $form): Forms\Form

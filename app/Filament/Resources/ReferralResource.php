@@ -16,8 +16,8 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 class ReferralResource extends Resource
 {
     protected static ?string $model = Referral::class;
+    protected static ?string $navigationGroup = "Customer Management";
 
-    protected static ?string $navigationIcon = 'heroicon-o-computer-desktop';
 
     public static function form(Form $form): Form
     {

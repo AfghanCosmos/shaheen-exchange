@@ -16,7 +16,7 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 class HawlaResource extends Resource
 {
     protected static ?string $model = Hawla::class;
-
+    protected static ?string $navigationGroup = "Hawla Management";
 
     public static function form(Form $form): Form
 {
@@ -232,7 +232,7 @@ public static function table(Table $table): Table
                 ->sortable()
                 ->label('Commission'),
 
-            Tables\Columns\BadgeColumn::make('status.name')
+            Tables\Columns\BadgeColumn::make('status')
                 ->label('Status')
                 ->sortable()
                 ->colors([
@@ -271,11 +271,7 @@ public static function table(Table $table): Table
                 ->sortable()
                 ->toggleable(isToggledHiddenByDefault: true),
         ])
-        ->filters([
-            Tables\Filters\SelectFilter::make('status')
-                ->relationship('status', 'name')
-                ->label('Status'),
-        ])
+     
         ->actions([
             Tables\Actions\ViewAction::make(),
             Tables\Actions\EditAction::make(),

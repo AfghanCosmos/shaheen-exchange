@@ -21,8 +21,7 @@ class TransactionResource extends Resource
 {
     protected static ?string $model = Transaction::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-cube-transparent';
-    protected static ?string $navigationGroup = 'Transection';
+    protected static ?string $navigationGroup = 'Transaction';
     protected static ?string $navigationLabel = 'Deposit';
 
 
@@ -43,7 +42,7 @@ class TransactionResource extends Resource
                             ->label('Currency')
                             ->disabled(
 
-                            
+
                             )
                             ->relationship('currency', 'id')
                             ->default(fn (Get $get) => optional(Wallet::find($get('wallet_id')))->currency_id)
