@@ -20,24 +20,61 @@ class StoreCommissionRangeResource extends Resource
 {
     protected static ?string $model = StoreCommissionRange::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationGroup = "Store Management";
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                //
-            ]);
-    }
+                Forms\Components\Select::make('store_id')
+                    ->label('Store')
+                    ->relationship('store', 'name')
+                    ->required()
+                    ->columnSpan(2),
+                Forms\Components\Select::make('currency_id')
+                    ->label('Currency ID')
+                    ->relationship('currency', 'name')
+                    ->required()
+                    ->columnSpan(2),
+                Forms\Components\TextInput::make('from')
+                    ->label('From Value')
+                    ->required()
+                    ->maxLength(255)
+                    ->hint('Specify the starting value of the range.'),
+                Forms\Components\TextInput::make('to')
+                    ->label('To Value')
+                    ->required()
+                    ->maxLength(255)
+                    ->hint('Specify the ending value of the range.'),
+                Forms\Components\TextInput::make('commission')
+                    ->label('Commission')
+                    ->required()
+                    ->numeric()
+                    ->prefix('$')
+                    ->helperText('Enter the commission amount in USD.'),
+            ])
+            ->columns(2);
 
+    }
     public static function table(Table $table): Table
     {
         return $table
             ->columns([
-                //
+            Tables\Columns\TextColumn::make('store.name')
+                ->label('Store'),
+            Tables\Columns\TextColumn::make('currency.name')
+                ->label('Currency'),
+            Tables\Columns\TextColumn::make('from')
+                ->label('From Value'),
+            Tables\Columns\TextColumn::make('to')
+                ->label('To Value'),
+                Tables\Columns\TextColumn::make('commission')
+                 
+                    ->label('Commission'),
             ])
             ->filters([
-                //
+                Tables\Filters\Filter::make('commission')
+                    ->query(fn (Builder $query): Builder => $query)
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),

@@ -20,7 +20,6 @@ class StoreContactResource extends Resource
 {
     protected static ?string $model = StoreContact::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-globe-alt';
     protected static ?string $navigationGroup = 'Store Management';
 
     /**

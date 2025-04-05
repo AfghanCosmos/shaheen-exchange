@@ -17,7 +17,7 @@ class ProvinceResource extends Resource
 {
     protected static ?string $model = Province::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-clipboard-document-check';
+    // protected static ?string $navigationIcon = 'heroicon-o-clipboard-document-check';
     protected static ?string $navigationGroup = "Settings";
 
     public static function form(Form $form): Form

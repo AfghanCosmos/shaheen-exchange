@@ -61,9 +61,14 @@ class AdminPanelProvider extends PanelProvider
                 ]
             )
             ->navigationGroups([
-            NavigationGroup::make()
+                 NavigationGroup::make()
+                ->label(fn(): string => __('Store Management'))
+                ->icon('heroicon-o-building-storefront')
+                ->collapsed(),
+
+                NavigationGroup::make()
                 ->label(fn(): string => __('Settings'))
-                // ->icon('heroicon-o-cog-6-tooth')
+                ->icon('heroicon-o-cog-6-tooth')
                 ->collapsed(),
 
 

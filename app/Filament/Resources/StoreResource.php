@@ -28,7 +28,6 @@ class StoreResource extends Resource
 {
     protected static ?string $model = Store::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-banknotes';
     protected static ?string $navigationGroup = 'Store Management';
 
     public static function form(Form $form): Form
@@ -271,7 +270,7 @@ class StoreResource extends Resource
             WalletsRelationManager::class,
             StoreCommissionsRelationManager::class,
             StoreCommissionRangesRelationManager::class
-            
+
         ];
     }
 
