@@ -14,8 +14,11 @@ use Illuminate\Database\Eloquent\Builder;
 class ContractTypeResource extends Resource
 {
     protected static ?string $model = ContractType::class;
-    protected static ?string $navigationIcon = 'heroicon-o-phone-arrow-down-left';
-    protected static ?string $navigationGroup = 'Transection';
+    protected static ?string $navigationLabel = 'Contract Type';
+    protected static ?string $label = 'Contract Type';
+    protected static ?string $pluralLabel = 'Contract Types';
+
+    protected static ?string $navigationGroup = 'Settings';
 
 
     public static function form(Form $form): Form
@@ -81,10 +84,6 @@ class ContractTypeResource extends Resource
 
 
 
-    public static function getNavigationGroup(): string
-    {
-        return __('Human Resources');
-    }
 
     public static function getLabel(): ?string
     {

@@ -70,10 +70,6 @@ class Hawla extends Model
         return $this->belongsTo(User::class, 'created_by');
     }
 
-    public function status(): BelongsTo
-    {
-        return $this->belongsTo(HawlaStatus::class, 'status_id');
-    }
 
 
 }

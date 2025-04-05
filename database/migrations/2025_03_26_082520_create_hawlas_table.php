@@ -34,7 +34,7 @@ return new class extends Migration
             $table->text('note')->nullable();
             $table->foreignId('created_by');
             $table->string('receiver_verification_document')->nullable();
-            $table->foreignId('status_id');
+            $table->enum('status', ['pending', 'in_progress', 'completed', 'cancelled']);
             $table->timestamps();
             $table->softDeletes();
         });

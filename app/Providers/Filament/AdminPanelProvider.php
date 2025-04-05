@@ -21,6 +21,9 @@ use Afsakar\FilamentOtpLogin\FilamentOtpLoginPlugin;
 use Rupadana\ApiService\ApiServicePlugin;
 use Rupadana\ApiService\ApiServicePlugin as NewApiServicePlugin;
 use Awcodes\FilamentQuickCreate\QuickCreatePlugin;
+
+use Filament\Navigation\NavigationGroup;
+use Filament\Navigation\NavigationItem;
 class AdminPanelProvider extends PanelProvider
 {
     public function panel(Panel $panel): Panel
@@ -57,6 +60,14 @@ class AdminPanelProvider extends PanelProvider
 
                 ]
             )
+            ->navigationGroups([
+            NavigationGroup::make()
+                ->label(fn(): string => __('Settings'))
+                // ->icon('heroicon-o-cog-6-tooth')
+                ->collapsed(),
+
+
+            ])
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,

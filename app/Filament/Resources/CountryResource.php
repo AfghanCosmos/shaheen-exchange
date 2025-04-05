@@ -18,6 +18,7 @@ class CountryResource extends Resource
     protected static ?string $model = Country::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-globe-alt';
+    protected static ?string $navigationGroup = 'Settings';
 
     public static function form(Form $form): Form
     {

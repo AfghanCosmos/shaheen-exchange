@@ -17,7 +17,6 @@ class HawlaResource extends Resource
 {
     protected static ?string $model = Hawla::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
     public static function form(Form $form): Form
 {
@@ -153,10 +152,16 @@ class HawlaResource extends Resource
                             ->default(now())
                                 ->required(),
 
-                                Forms\Components\Select::make('status_id')
-                                ->relationship('status', 'name')
-                                ->native(false)
-                                ->required(),
+                                Forms\Components\Select::make('status')
+                                    ->label('Status')
+                                    ->options([
+                                         'pending' => 'Pending',
+                                         'in_progress' => 'In Progress',
+                                         'completed' => 'Completed',
+                                         'cancelled' => 'Cancelled',
+                                    ])
+                                    ->native(false)
+                                    ->required(),
 
                             Forms\Components\Select::make('created_by')
                                 ->relationship('creator', 'name')
