@@ -2,16 +2,17 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 
 class HawlaTypeSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
-        //
+        DB::table('hawla_types')->insert([
+            ['name' => 'Personal'],
+            ['name' => 'Business'],
+            ['name' => 'Loan'],
+        ]);
     }
 }
