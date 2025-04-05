@@ -11,15 +11,21 @@ use App\Filament\Resources\StoreResource\RelationManagers\WalletsRelationManager
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Section as FormSection;
+
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\Section;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Infolists\Infolist;
+use Filament\Infolists\Components\Section;
+use Filament\Infolists\Components\TextEntry;
+use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Tables\Table;
 use Filament\Tables\Columns\BadgeColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Forms\Components\MorphToSelect;
+
 class WalletResource extends Resource
 {
     protected static ?string $model = Wallet::class;
@@ -34,7 +40,7 @@ class WalletResource extends Resource
     {
         return $form
             ->schema([
-                Section::make('Wallet Information')
+                FormSection::make('Wallet Information')
                     ->schema([
 
                        Forms\Components\MorphToSelect::make('owner')
@@ -143,9 +149,77 @@ class WalletResource extends Resource
             ]);
     }
 
-    /**
-     * Relations
-     */
+    public static function infolist(Infolist $infolist): Infolist
+    {
+        return $infolist->schema([
+            Section::make(__('Wallet Information'))
+                ->columns(3)
+                ->schema([
+                    TextEntry::make('uuid')
+                        ->label(__('Wallet UUID'))
+                        ->copyable(),
+
+                    TextEntry::make('owner_type')
+                        ->label(__('Owner Type')),
+
+                    TextEntry::make('owner.name')
+                        ->label(__('Owner Name')),
+
+                    TextEntry::make('currency.code')
+                        ->label(__('Currency')),
+
+                    TextEntry::make('balance')
+                        ->label(__('Balance'))
+                        ->money(fn ($record) => $record->currency?->code ?? 'USD'),
+                ]),
+
+            Section::make(__('Metadata'))
+                ->columns(2)
+                ->collapsed()
+                ->schema([
+                    TextEntry::make('created_at')
+                        ->label(__('Created At'))
+                        ->dateTime(),
+
+                    TextEntry::make('updated_at')
+                        ->label(__('Updated At'))
+                        ->dateTime(),
+                ]),
+
+            Section::make(__('Latest Hawla Transactions'))
+                ->columns(1)
+                ->collapsed()
+                ->schema([
+                    RepeatableEntry::make('hawlasAsSender')
+                        ->label(__('Sent Hawlas'))
+                        ->hidden(fn ($record) => $record->owner_type !== \App\Models\Store::class)
+                        ->schema([
+                            TextEntry::make('uuid')->label('Hawla Code'),
+                            TextEntry::make('hawlaType.name')->label('Type'),
+                            TextEntry::make('receiverStore.name')->label('Receiver Store'),
+                            TextEntry::make('givenCurrency.code')->label('Currency'),
+                            TextEntry::make('created_at')->label('Date')->dateTime(),
+                        ])
+                        ->columns(3)
+                        ->limit(5),
+
+                    RepeatableEntry::make('hawlasAsReceiver')
+                        ->label(__('Received Hawlas'))
+                        ->hidden(fn ($record) => $record->owner_type !== \App\Models\Store::class)
+                        ->schema([
+                            TextEntry::make('uuid')->label('Hawla Code'),
+                            TextEntry::make('hawlaType.name')->label('Type'),
+                            TextEntry::make('senderStore.name')->label('Sender Store'),
+                            TextEntry::make('receivingCurrency.code')->label('Currency'),
+                            TextEntry::make('created_at')->label('Date')->dateTime(),
+                        ])
+                        ->columns(3)
+                        ->limit(5),
+                ]),
+        ]);
+    }
+
+
     public static function getRelations(): array
     {
         return [
@@ -162,6 +236,7 @@ class WalletResource extends Resource
             'index' => Pages\ListWallets::route('/'),
             'create' => Pages\CreateWallet::route('/create'),
             'edit' => Pages\EditWallet::route('/{record}/edit'),
+            'view' => Pages\ViewWallet::route('/{record}'),
         ];
     }
 }
