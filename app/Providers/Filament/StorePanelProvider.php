@@ -39,9 +39,6 @@ class StorePanelProvider extends PanelProvider
                 // Widgets\FilamentInfoWidget::class,
                 \App\Filament\Widgets\HawlaOverview::class,
                 \App\Filament\Widgets\HawlaChart::class,
-                \App\Filament\Widgets\HawlaByStoreChart::class,
-
-
 
             ])
             ->middleware([
