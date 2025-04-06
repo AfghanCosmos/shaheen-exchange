@@ -57,8 +57,8 @@ class HawlaResource extends Resource
                             return $query;
                         })
                         ->label('Sender Store')
-                        ->native(false)
                         ->searchable()
+                        ->preload()
                         ->live() // reactive field
                         ->required(),
                 ]),
@@ -113,46 +113,10 @@ class HawlaResource extends Resource
                 ->required()
                 ->live()
                 ->afterStateUpdated(function ($state, callable $set, callable $get) {
-                    // Sync receiving currency to match given if not selected
                     if (!$get('receiving_amount_currency_id')) {
                         $set('receiving_amount_currency_id', $state);
                     }
-
-                    // Trigger recalculation if amount exists
-                    if ($get('given_amount')) {
-                        $recalculate = function () use ($get, $set) {
-                            $givenCurrency = $get('given_amount_currency_id');
-                            $receivingCurrency = $get('receiving_amount_currency_id');
-                            $amount = (float) $get('given_amount');
-
-                            if ($givenCurrency && $receivingCurrency) {
-                                if ($givenCurrency !== $receivingCurrency) {
-                                    $rate = optional(
-                                        \App\Models\ExchangeRate::where('from_currency_id', $givenCurrency)
-                                            ->where('to_currency_id', $receivingCurrency)
-                                            ->latest('date')
-                                            ->first()
-                                    )->sell_rate;
-
-                                    if ($rate) {
-                                        $set('exchange_rate', $rate);
-                                        $set('receiving_amount', $amount * $rate);
-                                    } else {
-                                        $set('exchange_rate', null);
-                                        $set('receiving_amount', null);
-                                    }
-                                } else {
-                                    $set('exchange_rate', null);
-                                    $set('receiving_amount', $amount);
-                                }
-                            }
-                        };
-
-                        $recalculate();
-
-                        // Recalculate commission
-                        self::calculateCommission($get, $set, $get('given_amount'));
-                    }
+                    self::handleExchangeAndCommission($get, $set);
                 }),
 
             // Given Amount
@@ -161,33 +125,7 @@ class HawlaResource extends Resource
                 ->numeric()
                 ->live(debounce: 500)
                 ->afterStateUpdated(function ($state, callable $set, callable $get) {
-                    $givenCurrency = $get('given_amount_currency_id');
-                    $receivingCurrency = $get('receiving_amount_currency_id');
-
-                    if ($givenCurrency && $receivingCurrency) {
-                        if ($givenCurrency !== $receivingCurrency) {
-                            $rate = optional(
-                                \App\Models\ExchangeRate::where('from_currency_id', $givenCurrency)
-                                    ->where('to_currency_id', $receivingCurrency)
-                                    ->latest('date')
-                                    ->first()
-                            )->sell_rate;
-
-                            if ($rate) {
-                                $set('exchange_rate', $rate);
-                                $set('receiving_amount', $state * $rate);
-                            } else {
-                                $set('exchange_rate', null);
-                                $set('receiving_amount', null);
-                            }
-                        } else {
-                            $set('exchange_rate', null);
-                            $set('receiving_amount', $state);
-                        }
-                    }
-
-                    // Recalculate commission
-                    self::calculateCommission($get, $set, $state);
+                    self::handleExchangeAndCommission($get, $set);
                 }),
 
             // Receiving Currency
@@ -199,33 +137,10 @@ class HawlaResource extends Resource
                 ->required()
                 ->live()
                 ->afterStateUpdated(function ($state, callable $set, callable $get) {
-                    $amount = (float) $get('given_amount');
-                    $givenCurrency = $get('given_amount_currency_id');
-
-                    if ($givenCurrency && $state) {
-                        if ($givenCurrency !== $state) {
-                            $rate = optional(
-                                \App\Models\ExchangeRate::where('from_currency_id', $givenCurrency)
-                                    ->where('to_currency_id', $state)
-                                    ->latest('date')
-                                    ->first()
-                            )->sell_rate;
-
-                            if ($rate) {
-                                $set('exchange_rate', $rate);
-                                $set('receiving_amount', $amount * $rate);
-                            } else {
-                                $set('exchange_rate', null);
-                                $set('receiving_amount', null);
-                            }
-                        } else {
-                            $set('exchange_rate', null);
-                            $set('receiving_amount', $amount);
-                        }
-                    }
+                    self::handleExchangeAndCommission($get, $set);
                 }),
 
-            // Receiving Amount (read-only if exchange used)
+            // Receiving Amount
             Forms\Components\TextInput::make('receiving_amount')
                 ->required()
                 ->numeric()
@@ -233,19 +148,26 @@ class HawlaResource extends Resource
         ]),
 
         Forms\Components\Grid::make(3)->schema([
+            // Commission Type
             Forms\Components\Radio::make('store_commission')
-    ->label('Store Commission')
-    ->options(['range' => 'Range'] + \App\Models\CommissionType::pluck('name', 'id')->toArray())
-    ->default('range')
-    ->inline()
-    ->columnSpanFull()
-    ->live()
-    ->dehydrated(false)
-    ->afterStateUpdated(function (callable $set, callable $get) {
-        self::calculateCommission($get, $set, $get('given_amount'));
-    }),
+                ->label('Store Commission')
+                ->options(['range' => 'Range'] + \App\Models\CommissionType::pluck('name', 'id')->toArray())
+                ->default('range')
+                ->inline()
+                ->columnSpan(2)
+                ->live()
+                ->dehydrated(false)
+                ->afterStateUpdated(fn (callable $set, callable $get) => self::handleExchangeAndCommission($get, $set)),
 
+            // Deduct Checkbox
+            Forms\Components\Checkbox::make('deduct_commission')
+                ->label('Deduct Commission')
+                ->default(true)
+                ->live()
+                ->dehydrated(false)
+                ->afterStateUpdated(fn ($state, callable $set, callable $get) => self::handleExchangeAndCommission($get, $set)),
 
+            // Exchange Rate & Commission
             Forms\Components\TextInput::make('exchange_rate')
                 ->numeric()
                 ->readOnly(),
@@ -253,18 +175,16 @@ class HawlaResource extends Resource
             Forms\Components\TextInput::make('commission')
                 ->numeric()
                 ->readOnly(),
-
             Forms\Components\Select::make('commission_taken_by')
                 ->options([
                     'sender_store' => 'Sender Store',
                     'receiver_store' => 'Receiver Store',
                 ])
                 ->default('sender_store')
-                ->native()
+                ->searchable()
+                ->preload()
                 ->live()
-                ->afterStateUpdated(function (callable $set, callable $get) {
-                    self::calculateCommission($get, $set, $get('given_amount'));
-                }),
+                ->afterStateUpdated(fn ($state, callable $set, callable $get) => self::handleExchangeAndCommission($get, $set)),
         ]),
             ]),
            Forms\Components\Section::make('Note')
@@ -431,36 +351,67 @@ class HawlaResource extends Resource
         ];
     }
 
-    public static function calculateCommission(callable $get, callable $set, $amount): void
-{
-    $commissionType = $get('store_commission');
-    $givenCurrency = $get('given_amount_currency_id');
-    $commissionTakenBy = $get('commission_taken_by') ?? 'sender_store';
-    $storeId = $commissionTakenBy === 'sender_store' ? $get('sender_store_id') : $get('receiver_store_id');
+    public static function handleExchangeAndCommission(callable $get, callable $set): void
+    {
+        $givenAmount = (float) $get('given_amount');
+        $givenCurrency = $get('given_amount_currency_id');
+        $receivingCurrency = $get('receiving_amount_currency_id');
+        $commissionType = $get('store_commission');
+        $commissionTakenBy = $get('commission_taken_by') ?? 'sender_store';
+        $storeId = $commissionTakenBy === 'sender_store' ? $get('sender_store_id') : $get('receiver_store_id');
+        $deductCommission = $get('deduct_commission');
 
-    if (!$amount || !$storeId || !$givenCurrency) {
-        $set('commission', 0);
-        return;
-    }
+        $exchangeRate = null;
+        $rate = null;
 
-    if ($commissionType === 'range') {
-        $range = \App\Models\StoreCommissionRange::where('store_id', $storeId)
-            ->where('currency_id', $givenCurrency)
-            ->whereRaw('? BETWEEN CAST(`from` AS DECIMAL(16,2)) AND CAST(`to` AS DECIMAL(16,2))', [$amount])
-            ->first();
-        $set('commission', $range?->commission ?? 0);
-    } else {
-        $storeCommission = \App\Models\StoreCommission::where('store_id', $storeId)
-            ->where('currency_id', $givenCurrency)
-            ->where('commission_type_id', $commissionType)
-            ->first();
+        // 1. Get exchange rate
+        if ($givenCurrency && $receivingCurrency && $givenCurrency !== $receivingCurrency) {
+            $exchangeRate = \App\Models\ExchangeRate::where('from_currency_id', $givenCurrency)
+                ->where('to_currency_id', $receivingCurrency)
+                ->latest('date')
+                ->first();
 
-        $commission = $storeCommission
-            ? ($storeCommission->is_fix ? $storeCommission->commission : ($amount * $storeCommission->commission) / 100)
-            : 0;
+            $rate = $exchangeRate?->sell_rate;
+            $set('exchange_rate', $rate);
+        } else {
+            $rate = null;
+            $set('exchange_rate', null);
+        }
+
+        // 2. Commission calculation
+        $commission = 0;
+
+        if ($givenAmount && $storeId && $givenCurrency) {
+            if ($commissionType === 'range') {
+                $range = \App\Models\StoreCommissionRange::where('store_id', $storeId)
+                    ->where('currency_id', $givenCurrency)
+                    ->whereRaw('? BETWEEN CAST(`from` AS DECIMAL(16,2)) AND CAST(`to` AS DECIMAL(16,2))', [$givenAmount])
+                    ->first();
+
+                $commission = $range?->commission ?? 0;
+            } else {
+                $storeCommission = \App\Models\StoreCommission::where('store_id', $storeId)
+                    ->where('currency_id', $givenCurrency)
+                    ->where('commission_type_id', $commissionType)
+                    ->first();
+
+                $commission = $storeCommission
+                    ? ($storeCommission->is_fix ? $storeCommission->commission : ($givenAmount * $storeCommission->commission) / 100)
+                    : 0;
+            }
+        }
 
         $set('commission', $commission);
+
+        // 3. Receiving amount calculation
+        if ($rate) {
+            $finalGiven = $deductCommission ? max(0, $givenAmount - $commission) : $givenAmount;
+            $set('receiving_amount', $finalGiven * $rate);
+        } else {
+            $finalGiven = $deductCommission ? max(0, $givenAmount - $commission) : $givenAmount;
+            $set('receiving_amount', $finalGiven);
+        }
     }
-}
+
 
 }
