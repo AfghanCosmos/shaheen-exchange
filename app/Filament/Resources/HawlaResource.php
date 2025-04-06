@@ -4,14 +4,19 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\HawlaResource\Pages;
 use App\Filament\Resources\HawlaResource\RelationManagers;
+use App\Filament\Resources\HawlaResource\RelationManagers\ReceiverStoreRelationManager;
+use App\Filament\Resources\HawlaResource\RelationManagers\SenderStoreRelationManager;
 use App\Models\Hawla;
 use Filament\Forms;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Form;
+use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Laravel\SerializableClosure\Serializers\Native;
 
 class HawlaResource extends Resource
 {
@@ -44,15 +49,17 @@ class HawlaResource extends Resource
                                 ->required()
                                 ->maxLength(255),
                         ]),
-                    Forms\Components\Select::make('sender_store_id')
+                    Select::make('sender_store_id')
                         ->relationship('senderStore', 'name', function ($query) {
-                            if (! auth()->user()->hasRole('super_admin')) {
+                            if (!auth()->user()->hasRole('super_admin')) {
                                 $query->where('id', auth()->user()?->store?->id);
                             }
                             return $query;
                         })
                         ->label('Sender Store')
-                        ->native()
+                        ->native(false)
+                        ->searchable()
+                        ->live() // reactive field
                         ->required(),
                 ]),
 
@@ -77,9 +84,19 @@ class HawlaResource extends Resource
                     Forms\Components\Textarea::make('receiver_address')
                         ->columnSpanFull(),
 
-                    Forms\Components\Select::make('receiver_store_id')
-                        ->relationship('receiverStore', 'name')
+                    Select::make('receiver_store_id')
+                        ->relationship('receiverStore', 'name', function ($query, $get) {
+                            $senderStoreId = $get('sender_store_id');
+
+                            if ($senderStoreId) {
+                                $query->where('id', '!=', $senderStoreId);
+                            }
+
+                            return $query;
+                        })
                         ->label('Receiver Store')
+                        ->searchable()
+                        ->native(false)
                         ->searchable()
                         ->preload()
                         ->required(),
@@ -277,120 +294,119 @@ class HawlaResource extends Resource
 
                         Forms\Components\Section::make()
                         ->columns(1)
-                                    ->schema([
+                        ->schema([
+                            Forms\Components\FileUpload::make('receiver_verification_document')
+                                ->label('Receiver Verification Document')
+                                ->maxSize(4024) // Maximum file size in KB
+                                ->directory('receiver_verification_documents')
+                                ->preserveFilenames()
+                            ]),
+            ]);
+        }
 
-                                        Forms\Components\FileUpload::make('receiver_verification_document')
-                                            ->label('Receiver Verification Document')
-                                            ->maxSize(4024) // Maximum file size in KB
-                                            ->directory('receiver_verification_documents')
-                                            ->preserveFilenames()
-                                    ]),
+        public static function table(Table $table): Table
+        {
+            return $table
+                ->columns([
+                    Tables\Columns\TextColumn::make('uuid')
+                        ->label('UUID')
+                        ->searchable()
+                        ->copyable()
+                        ->copyMessage('UUID copied!')
+                        ->copyMessageDuration(1500),
 
-        ]);
-}
+                    Tables\Columns\TextColumn::make('date')
+                        ->label('Date')
+                        ->dateTime()
+                        ->sortable(),
 
-public static function table(Table $table): Table
-{
-    return $table
-        ->columns([
-            Tables\Columns\TextColumn::make('uuid')
-                ->label('UUID')
-                ->searchable()
-                ->copyable()
-                ->copyMessage('UUID copied!')
-                ->copyMessageDuration(1500),
+                    Tables\Columns\TextColumn::make('hawlaType.name')
+                        ->label('Hawla Type')
+                        ->sortable()
+                        ->searchable(),
 
-            Tables\Columns\TextColumn::make('date')
-                ->label('Date')
-                ->dateTime()
-                ->sortable(),
+                    Tables\Columns\TextColumn::make('sender_name')
+                        ->label('Sender')
+                        ->searchable(),
 
-            Tables\Columns\TextColumn::make('hawlaType.name')
-                ->label('Hawla Type')
-                ->sortable()
-                ->searchable(),
+                    Tables\Columns\TextColumn::make('receiver_name')
+                        ->label('Receiver')
+                        ->searchable(),
 
-            Tables\Columns\TextColumn::make('sender_name')
-                ->label('Sender')
-                ->searchable(),
+                    Tables\Columns\TextColumn::make('given_amount')
+                        ->label('Given')
+                        ->numeric()
+                        ->sortable()
+                        ->suffix(fn ($record) => ' ' . optional($record->givenCurrency)->code),
 
-            Tables\Columns\TextColumn::make('receiver_name')
-                ->label('Receiver')
-                ->searchable(),
+                    Tables\Columns\TextColumn::make('receiving_amount')
+                        ->label('Receiving')
+                        ->numeric()
+                        ->sortable()
+                        ->suffix(fn ($record) => ' ' . optional($record->receivingCurrency)->code),
 
-            Tables\Columns\TextColumn::make('given_amount')
-                ->label('Given')
-                ->numeric()
-                ->sortable()
-                ->suffix(fn ($record) => ' ' . optional($record->givenCurrency)->code),
-
-            Tables\Columns\TextColumn::make('receiving_amount')
-                ->label('Receiving')
-                ->numeric()
-                ->sortable()
-                ->suffix(fn ($record) => ' ' . optional($record->receivingCurrency)->code),
-
-            Tables\Columns\TextColumn::make('commission')
-                ->numeric()
-                ->sortable()
-                ->label('Commission'),
+                    Tables\Columns\TextColumn::make('commission')
+                        ->numeric()
+                        ->sortable()
+                        ->label('Commission'),
 
 
-            Tables\Columns\BadgeColumn::make('status')
-                ->label('Status')
-                ->sortable()
-                ->colors([
-                    'primary' => fn ($state) => $state === 'Pending',
-                    'success' => fn ($state) => $state === 'Completed',
-                    'danger' => fn ($state) => $state === 'Cancelled',
+                    Tables\Columns\BadgeColumn::make('status')
+                        ->label('Status')
+                        ->sortable()
+                        ->colors([
+                            'primary' => fn ($state) => $state === 'Pending',
+                            'success' => fn ($state) => $state === 'Completed',
+                            'danger' => fn ($state) => $state === 'Cancelled',
+                        ])
+                        ->icons([
+                            'heroicon-o-clock' => 'Pending',
+                            'heroicon-o-check-circle' => 'Completed',
+                            'heroicon-o-x-circle' => 'Cancelled',
+                        ]),
+
+                    Tables\Columns\TextColumn::make('senderStore.name')
+                        ->label('From Store')
+                        ->sortable(),
+
+                    Tables\Columns\TextColumn::make('receiverStore.name')
+                        ->label('To Store')
+                        ->sortable(),
+
+                    Tables\Columns\TextColumn::make('creator.name')
+                        ->label('Created By')
+                        ->searchable()
+                        ->sortable(),
+
+                    Tables\Columns\TextColumn::make('created_at')
+                        ->label('Created')
+                        ->dateTime()
+                        ->sortable()
+                        ->toggleable(isToggledHiddenByDefault: true),
+
+                    Tables\Columns\TextColumn::make('updated_at')
+                        ->label('Updated')
+                        ->dateTime()
+                        ->sortable()
+                        ->toggleable(isToggledHiddenByDefault: true),
                 ])
-                ->icons([
-                    'heroicon-o-clock' => 'Pending',
-                    'heroicon-o-check-circle' => 'Completed',
-                    'heroicon-o-x-circle' => 'Cancelled',
-                ]),
 
-            Tables\Columns\TextColumn::make('senderStore.name')
-                ->label('From Store')
-                ->sortable(),
-
-            Tables\Columns\TextColumn::make('receiverStore.name')
-                ->label('To Store')
-                ->sortable(),
-
-            Tables\Columns\TextColumn::make('creator.name')
-                ->label('Created By')
-                ->searchable()
-                ->sortable(),
-
-            Tables\Columns\TextColumn::make('created_at')
-                ->label('Created')
-                ->dateTime()
-                ->sortable()
-                ->toggleable(isToggledHiddenByDefault: true),
-
-            Tables\Columns\TextColumn::make('updated_at')
-                ->label('Updated')
-                ->dateTime()
-                ->sortable()
-                ->toggleable(isToggledHiddenByDefault: true),
-        ])
-
-        ->actions([
-            Tables\Actions\ViewAction::make(),
-            Tables\Actions\EditAction::make(),
-        ])
-        ->bulkActions([
-            Tables\Actions\BulkActionGroup::make([
-                Tables\Actions\DeleteBulkAction::make(),
-            ]),
-        ]);
-}
+                ->actions([
+                    Tables\Actions\ViewAction::make(),
+                    Tables\Actions\EditAction::make(),
+                ])
+                ->bulkActions([
+                    Tables\Actions\BulkActionGroup::make([
+                        Tables\Actions\DeleteBulkAction::make(),
+                    ]),
+                ]);
+        }
 
     public static function getRelations(): array
     {
         return [
-            //
+            SenderStoreRelationManager::class,
+            ReceiverStoreRelationManager::class,
         ];
     }
 
