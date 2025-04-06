@@ -13,11 +13,16 @@ use App\Models\Store;
 use Carbon\Carbon;
 use Filament\Forms;
 use Filament\Forms\Components\Repeater;
-use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Toggle;
+use Filament\Forms\Components\Section;
+use Filament\Infolists\Components\Section as InfolistSection;
+use Filament\Infolists\Infolist;
+use Filament\Infolists\Components\Card;
+use Filament\Infolists\Components\Grid;
+use Filament\Infolists\Components\TextEntry;
 use Filament\Forms\Form;
+use Filament\Infolists\Components\IconEntry;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -234,6 +239,59 @@ class StoreResource extends Resource
                 ]),
             ]);
     }
+
+
+public static function infolist(Infolist $infolist): Infolist
+{
+    return $infolist
+        ->schema([
+            InfolistSection::make('Store Details')
+                ->schema([
+                    Grid::make(2)
+                        ->schema([
+                            Card::make()
+                                ->schema([
+                                    TextEntry::make('uuid')->label('UUID'),
+                                    TextEntry::make('name')->label('Store Name'),
+                                    TextEntry::make('status')->label('Status')->badge(),
+                                    IconEntry::make('is_closed')
+                                        ->label('Closed?')
+                                        ->boolean('heroicon-o-check-circle', 'heroicon-o-x-circle')
+                                        ->color(fn (bool $state) => $state ? 'success' : 'danger'),
+                                ])->columns(4),
+
+                            Card::make()
+                                ->schema([
+                                    TextEntry::make('user.name')->label('Owner'),
+                                    TextEntry::make('country.name')->label('Country'),
+                                    TextEntry::make('province.name')->label('Province'),
+                                    TextEntry::make('address')->label('Address'),
+                                ])->columns(4),
+                        ])->columns(4),
+                ])->columns(4),
+
+            InfolistSection::make('Geo & Timing Info')
+                ->schema([
+                    Grid::make(2)->schema([
+
+                                TextEntry::make('latitude')->label('Latitude'),
+                                TextEntry::make('longitude')->label('Longitude'),
+                                TextEntry::make('open_time')->label('Opening Time'),
+                                TextEntry::make('close_time')->label('Closing Time'),
+
+                    ])->columns(4),
+                ])->columns(4),
+
+            InfolistSection::make('Timestamps')
+                ->schema([
+                    Grid::make(2)->schema([
+                        TextEntry::make('created_at')->label('Created At')->dateTime()->since(),
+                        TextEntry::make('updated_at')->label('Updated At')->dateTime()->since(),
+                    ]),
+                ]),
+        ]);
+}
+
 
     /**
      * -------------------------
