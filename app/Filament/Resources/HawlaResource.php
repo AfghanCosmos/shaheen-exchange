@@ -84,162 +84,173 @@ class HawlaResource extends Resource
                         ->preload()
                         ->required(),
                 ]),
+                Forms\Components\Section::make('Amounts & Currency')
+    ->description('Financial values and currency types.')
+    ->schema([
+        Forms\Components\Grid::make(4)->schema([
+            // Given Currency
+            Forms\Components\Select::make('given_amount_currency_id')
+                ->relationship('givenCurrency', 'code')
+                ->label('Given Currency')
+                ->native()
+                ->required()
+                ->live()
+                ->afterStateUpdated(function ($state, callable $set, callable $get) {
+                    // Sync receiving currency to match given if not selected
+                    if (!$get('receiving_amount_currency_id')) {
+                        $set('receiving_amount_currency_id', $state);
+                    }
 
-            Forms\Components\Section::make('Amounts & Currency')
-                ->description('Financial values and currency types.')
-                ->schema([
-                    Forms\Components\Grid::make(4)
-                        ->schema([
-                            Forms\Components\Select::make('given_amount_currency_id')
-                                ->relationship('givenCurrency', 'code')
-                                ->label('Given Currency')
-                                ->native()
-                                ->required()
-                                ->live()
-                                ->afterStateUpdated(function ($state, callable $set) {
-                                    // Set the receiving currency default to the given currency.
-                                    $set('receiving_amount_currency_id', $state);
-                                }),
+                    // Trigger recalculation if amount exists
+                    if ($get('given_amount')) {
+                        $recalculate = function () use ($get, $set) {
+                            $givenCurrency = $get('given_amount_currency_id');
+                            $receivingCurrency = $get('receiving_amount_currency_id');
+                            $amount = (float) $get('given_amount');
 
-                                Forms\Components\TextInput::make('given_amount')
-                                        ->required()
-                                        ->numeric()
-                                        ->live()
-                                        ->afterStateUpdated(function ($state, callable $set, callable $get) {
-                                            $givenCurrency = $get('given_amount_currency_id');
-                                            $receivingCurrency = $get('receiving_amount_currency_id');
-                                            $commissionType = $get('store_commission');
-                                            $commissionTakenBy = $get('commission_taken_by') ?? 'sender_store';
-                                            $storeId = $commissionTakenBy === 'sender_store' ? $get('sender_store_id') : $get('receiver_store_id');
+                            if ($givenCurrency && $receivingCurrency) {
+                                if ($givenCurrency !== $receivingCurrency) {
+                                    $rate = optional(
+                                        \App\Models\ExchangeRate::where('from_currency_id', $givenCurrency)
+                                            ->where('to_currency_id', $receivingCurrency)
+                                            ->latest('date')
+                                            ->first()
+                                    )->sell_rate;
 
-                                            // --- Update exchange and receiving amount
-                                            if ($givenCurrency && $receivingCurrency && $givenCurrency !== $receivingCurrency) {
-                                                $exchangeRate = \App\Models\ExchangeRate::where('from_currency_id', $givenCurrency)
-                                                    ->where('to_currency_id', $receivingCurrency)
-                                                    ->orderBy('date', 'desc')
-                                                    ->first();
-
-                                                if ($exchangeRate) {
-                                                    $set('exchange_rate', $exchangeRate->sell_rate);
-                                                    $set('receiving_amount', $state * $exchangeRate->sell_rate);
-                                                } else {
-                                                    $set('exchange_rate', null);
-                                                    $set('receiving_amount', null);
-                                                }
-                                            } else {
-                                                $set('exchange_rate', null);
-                                                $set('receiving_amount', $state);
-                                            }
-
-                                            // --- Commission calculation
-                                            if (!$state || !$storeId || !$givenCurrency) {
-                                                $set('commission', 0);
-                                                return;
-                                            }
-
-
-                                            if ($commissionType === 'range') {
-
-                                                $range = \App\Models\StoreCommissionRange::where('store_id', $storeId)
-                                                    ->where('currency_id', $givenCurrency)
-                                                    ->whereRaw('? BETWEEN CAST(`from` AS DECIMAL(16,2)) AND CAST(`to` AS DECIMAL(16,2))', [$state])
-                                                    ->first();
-
-                                                $set('commission', $range?->commission ?? 0);
-
-                                            } else {
-
-                                                $storeCommission = \App\Models\StoreCommission::where('store_id', $storeId)
-                                                    ->where('currency_id', $givenCurrency)
-                                                    ->where('commission_type_id', $commissionType)
-                                                    ->first();
-
-
-                                                if ($storeCommission) {
-                                                    $commission = $storeCommission->is_fix
-                                                        ? $storeCommission->commission
-                                                        : ($state * $storeCommission->commission) / 100;
-
-                                                    $set('commission', $commission);
-                                                } else {
-                                                    $set('commission', 0);
-                                                }
-                                            }
-                                        }),
-                        Forms\Components\Select::make('receiving_amount_currency_id')
-                                ->relationship('receivingCurrency', 'code')
-                                ->label('Receiving Currency')
-                                ->native()
-                                ->preload()
-                                ->required()
-                                ->live()
-
-                                ->afterStateUpdated(function ($state, callable $set, callable $get) {
-                                    $givenCurrency = $get('given_amount_currency_id');
-                                    $givenAmount = $get('given_amount');
-
-                                    // If currencies are different, update the exchange rate and receiving amount.
-                                    if ($givenCurrency && $state && $givenCurrency !== $state) {
-                                        $exchangeRate = \App\Models\ExchangeRate::where('from_currency_id', $givenCurrency)
-                                            ->where('to_currency_id', $state)
-                                            ->orderBy('date', 'desc')
-                                            ->first();
-
-                                        if ($exchangeRate) {
-                                            $set('exchange_rate', $exchangeRate->sell_rate);
-                                            $set('receiving_amount', $givenAmount * $exchangeRate->sell_rate);
-                                        } else {
-                                            $set('exchange_rate', null);
-                                            $set('receiving_amount', null);
-                                        }
+                                    if ($rate) {
+                                        $set('exchange_rate', $rate);
+                                        $set('receiving_amount', $amount * $rate);
                                     } else {
                                         $set('exchange_rate', null);
-                                        $set('receiving_amount', $givenAmount);
+                                        $set('receiving_amount', null);
                                     }
-                                }),
+                                } else {
+                                    $set('exchange_rate', null);
+                                    $set('receiving_amount', $amount);
+                                }
+                            }
+                        };
 
-                            Forms\Components\TextInput::make('receiving_amount')
-                                ->required()
-                                ->live()
-                                ->numeric(),
+                        $recalculate();
+
+                        // Recalculate commission
+                        self::calculateCommission($get, $set, $get('given_amount'));
+                    }
+                }),
+
+            // Given Amount
+            Forms\Components\TextInput::make('given_amount')
+                ->required()
+                ->numeric()
+                ->live(debounce: 500)
+                ->afterStateUpdated(function ($state, callable $set, callable $get) {
+                    $givenCurrency = $get('given_amount_currency_id');
+                    $receivingCurrency = $get('receiving_amount_currency_id');
+
+                    if ($givenCurrency && $receivingCurrency) {
+                        if ($givenCurrency !== $receivingCurrency) {
+                            $rate = optional(
+                                \App\Models\ExchangeRate::where('from_currency_id', $givenCurrency)
+                                    ->where('to_currency_id', $receivingCurrency)
+                                    ->latest('date')
+                                    ->first()
+                            )->sell_rate;
+
+                            if ($rate) {
+                                $set('exchange_rate', $rate);
+                                $set('receiving_amount', $state * $rate);
+                            } else {
+                                $set('exchange_rate', null);
+                                $set('receiving_amount', null);
+                            }
+                        } else {
+                            $set('exchange_rate', null);
+                            $set('receiving_amount', $state);
+                        }
+                    }
+
+                    // Recalculate commission
+                    self::calculateCommission($get, $set, $state);
+                }),
+
+            // Receiving Currency
+            Forms\Components\Select::make('receiving_amount_currency_id')
+                ->relationship('receivingCurrency', 'code')
+                ->label('Receiving Currency')
+                ->native()
+                ->preload()
+                ->required()
+                ->live()
+                ->afterStateUpdated(function ($state, callable $set, callable $get) {
+                    $amount = (float) $get('given_amount');
+                    $givenCurrency = $get('given_amount_currency_id');
+
+                    if ($givenCurrency && $state) {
+                        if ($givenCurrency !== $state) {
+                            $rate = optional(
+                                \App\Models\ExchangeRate::where('from_currency_id', $givenCurrency)
+                                    ->where('to_currency_id', $state)
+                                    ->latest('date')
+                                    ->first()
+                            )->sell_rate;
+
+                            if ($rate) {
+                                $set('exchange_rate', $rate);
+                                $set('receiving_amount', $amount * $rate);
+                            } else {
+                                $set('exchange_rate', null);
+                                $set('receiving_amount', null);
+                            }
+                        } else {
+                            $set('exchange_rate', null);
+                            $set('receiving_amount', $amount);
+                        }
+                    }
+                }),
+
+            // Receiving Amount (read-only if exchange used)
+            Forms\Components\TextInput::make('receiving_amount')
+                ->required()
+                ->numeric()
+                ->readOnly(),
+        ]),
+
+        Forms\Components\Grid::make(3)->schema([
+            Forms\Components\Radio::make('store_commission')
+    ->label('Store Commission')
+    ->options(['range' => 'Range'] + \App\Models\CommissionType::pluck('name', 'id')->toArray())
+    ->default('range')
+    ->inline()
+    ->columnSpanFull()
+    ->live()
+    ->dehydrated(false)
+    ->afterStateUpdated(function (callable $set, callable $get) {
+        self::calculateCommission($get, $set, $get('given_amount'));
+    }),
 
 
-                        ]),
+            Forms\Components\TextInput::make('exchange_rate')
+                ->numeric()
+                ->readOnly(),
 
+            Forms\Components\TextInput::make('commission')
+                ->numeric()
+                ->readOnly(),
 
-                    Forms\Components\Grid::make(3)
-                        ->schema([
-                            Forms\Components\Radio::make('store_commission')
-                                ->label('Store Commission')
-                                ->options(
-                                    ['range' => 'Range'] + \App\Models\CommissionType::all()->pluck('name', 'id')->toArray()
-                                )
-                                ->default('range') // fixed typo from 'rage' to 'range'
-                                ->columnSpanFull()
-                                ->live()
-                                ->dehydrated(false)
-                                ->inline(),
-
-
-                            Forms\Components\TextInput::make('exchange_rate')
-                                ->numeric(),
-
-                            Forms\Components\TextInput::make('commission')
-                                ->numeric(),
-
-                                Forms\Components\Select::make('commission_taken_by')
-                                    ->options([
-                                        'sender_store' => 'Sender Store',
-                                        'receiver_store' => 'Receiver Store',
-                                    ])->native()
-                                    ->default('sender_store'),
-
-                        ]),
-
-
-                ]),
-
-            Forms\Components\Section::make('Note')
+            Forms\Components\Select::make('commission_taken_by')
+                ->options([
+                    'sender_store' => 'Sender Store',
+                    'receiver_store' => 'Receiver Store',
+                ])
+                ->default('sender_store')
+                ->native()
+                ->live()
+                ->afterStateUpdated(function (callable $set, callable $get) {
+                    self::calculateCommission($get, $set, $get('given_amount'));
+                }),
+        ]),
+            ]),
+           Forms\Components\Section::make('Note')
                 ->schema([
                     Forms\Components\Textarea::make('note')
                         ->columnSpanFull()
@@ -403,4 +414,37 @@ public static function table(Table $table): Table
             'edit' => Pages\EditHawla::route('/{record}/edit'),
         ];
     }
+
+    public static function calculateCommission(callable $get, callable $set, $amount): void
+{
+    $commissionType = $get('store_commission');
+    $givenCurrency = $get('given_amount_currency_id');
+    $commissionTakenBy = $get('commission_taken_by') ?? 'sender_store';
+    $storeId = $commissionTakenBy === 'sender_store' ? $get('sender_store_id') : $get('receiver_store_id');
+
+    if (!$amount || !$storeId || !$givenCurrency) {
+        $set('commission', 0);
+        return;
+    }
+
+    if ($commissionType === 'range') {
+        $range = \App\Models\StoreCommissionRange::where('store_id', $storeId)
+            ->where('currency_id', $givenCurrency)
+            ->whereRaw('? BETWEEN CAST(`from` AS DECIMAL(16,2)) AND CAST(`to` AS DECIMAL(16,2))', [$amount])
+            ->first();
+        $set('commission', $range?->commission ?? 0);
+    } else {
+        $storeCommission = \App\Models\StoreCommission::where('store_id', $storeId)
+            ->where('currency_id', $givenCurrency)
+            ->where('commission_type_id', $commissionType)
+            ->first();
+
+        $commission = $storeCommission
+            ? ($storeCommission->is_fix ? $storeCommission->commission : ($amount * $storeCommission->commission) / 100)
+            : 0;
+
+        $set('commission', $commission);
+    }
+}
+
 }
