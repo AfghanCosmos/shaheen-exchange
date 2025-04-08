@@ -325,6 +325,13 @@ class HawlaResource extends Resource
                 ->actions([
                     Tables\Actions\ViewAction::make(),
                     Tables\Actions\EditAction::make(),
+                    Tables\Actions\Action::make('pay')
+                        ->label('Pay')
+                        ->icon('heroicon-o-currency-dollar')
+                        ->action(function ($record) {
+                            $record->pay();
+                        })
+                        ->requiresConfirmation(),
                 ])
                 ->bulkActions([
                     Tables\Actions\BulkActionGroup::make([

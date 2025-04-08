@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-
+use Filament\Notifications\Notification;
 class Hawla extends Model
 {
     use SoftDeletes, HasFactory;
@@ -14,98 +14,119 @@ class Hawla extends Model
 
 
     protected static function boot()
-    {
-        parent::boot();
+{
+    parent::boot();
 
-        static::creating(function ($hawala) {
-            if (empty($hawala->uuid)) {
-                $hawala->uuid =  self::generateUniqueCode();
-            }
-        });
+    static::creating(function ($hawala) {
+        if (empty($hawala->uuid)) {
+            $hawala->uuid = self::generateUniqueCode();
+        }
+    });
 
-        static::created(function ($hawala) {
-            self::adjustWalletsOnCreate($hawala);
-        });
+    static::created(function ($hawala) {
+        self::adjustWalletOnCreate($hawala);
+    });
 
-        static::saving(function ($hawala) {
-            $original = $hawala->getOriginal();
-            self::adjustWalletsOnUpdate($hawala, $original);
-        });
+    static::updating(function ($hawala) {
+        $original = $hawala->getOriginal();
+        self::adjustWalletOnUpdate($hawala, $original);
+    });
 
-        static::deleting(function ($hawala) {
-            self::adjustWalletsOnDelete($hawala);
-        });
+    static::deleting(function ($hawala) {
+        self::adjustWalletOnDelete($hawala);
+    });
+}
+
+public function pay()
+{
+    // if ($this->paid_at) return;
+
+    try {
+        $wallet = self::getWallet($this->receiver_store_id, $this->given_amount_currency_id);
+
+        // Calculate how much to deduct from receiver
+        if ($this->commission_taken_by === 'receiver_store') {
+            $deductAmount = $this->given_amount - ($this->commission ?? 0);
+        } else {
+            $deductAmount = $this->given_amount;
+        }
+
+        if ($wallet->balance < $deductAmount) {
+             \Filament\Notifications\Notification::make()
+                ->title('Insufficient Balance')
+                ->body('The receiver store does not have enough balance to complete this transaction.')
+                ->danger()
+                ->send();
+                return;
+        }
+
+        $wallet->decrement('balance', $deductAmount);
+
+        $this->paid_at = now();
+        $this->status = 'completed';
+        $this->save();
+
+
+         \Filament\Notifications\Notification::make()
+            ->title('Transaction Successful')
+            ->body('Hawala marked as paid and balance updated successfully.')
+            ->success()
+            ->send();
+
+    } catch (\Exception $e) {
+         \Filament\Notifications\Notification::make()
+            ->title('Error')
+            ->body('Something went wrong: ' . $e->getMessage())
+            ->danger()
+            ->send();
+
+    }
+}
+protected static function adjustWalletOnCreate($hawala)
+{
+    $wallet = self::getWallet($hawala->sender_store_id, $hawala->given_amount_currency_id);
+
+    $amount = $hawala->given_amount;
+    if ($hawala->commission_taken_by === 'sender_store') {
+        $amount += ($hawala->commission ?? 0);
     }
 
-    // On Create
-    protected static function adjustWalletsOnCreate($hawala)
-    {
-        $storeId = $hawala->getStoreToCredit();
-        $currencyId = $hawala->given_amount_currency_id;
-        $amount = $hawala->given_amount;
-        $commission = $hawala->commission ?? 0;
+    $wallet->increment('balance', $amount);
+}
 
-        $total = $amount + $commission;
+protected static function adjustWalletOnUpdate($hawala, $original)
+{
+    $oldWallet = self::getWallet($original['sender_store_id'], $original['given_amount_currency_id']);
+    $oldAmount = $original['given_amount'];
+    if ($original['commission_taken_by'] === 'sender_store') {
+        $oldAmount += ($original['commission'] ?? 0);
+    }
+    $oldWallet->decrement('balance', $oldAmount);
 
-        $wallet = self::getWallet($storeId, $currencyId);
-        $wallet->increment('balance', $total);
+    // Apply new logic
+    self::adjustWalletOnCreate($hawala);
+}
+
+protected static function adjustWalletOnDelete($hawala)
+{
+    $wallet = self::getWallet($hawala->sender_store_id, $hawala->given_amount_currency_id);
+
+    $amount = $hawala->given_amount;
+    if ($hawala->commission_taken_by === 'sender_store') {
+        $amount += ($hawala->commission ?? 0);
     }
 
-    // On Update
-    protected static function adjustWalletsOnUpdate($hawala, $original)
-    {
-        // Remove old values
-        $oldCommissionTakenBy = $original['commission_taken_by'] ?? $hawala->commission_taken_by;
-        $oldStoreId = $oldCommissionTakenBy === 'sender_store' ? ($original['sender_store_id'] ?? $hawala->sender_store_id) : ($original['receiver_store_id'] ?? $hawala->receiver_store_id);
-        $oldCurrencyId = $original['given_amount_currency_id'] ?? $hawala->given_amount_currency_id;
-        $oldAmount = $original['given_amount'] ?? 0;
-        $oldCommission = $original['commission'] ?? 0;
+    $wallet->decrement('balance', $amount);
+}
 
-        $oldWallet = self::getWallet($oldStoreId, $oldCurrencyId);
-        $oldWallet->decrement('balance', $oldAmount + $oldCommission);
-
-
-        // Add new values
-        $newStoreId = $hawala->getStoreToCredit();
-        $newCurrencyId = $hawala->given_amount_currency_id;
-        $newAmount = $hawala->given_amount ?? 0;
-        $newCommission = $hawala->commission ?? 0;
-
-        $newWallet = self::getWallet($newStoreId, $newCurrencyId);
-        $newWallet->increment('balance', $newAmount + $newCommission);
-    }
-
-    // On Delete
-    protected static function adjustWalletsOnDelete($hawala)
-    {
-        $storeId = $hawala->getStoreToCredit();
-        $currencyId = $hawala->given_amount_currency_id;
-        $amount = $hawala->given_amount ?? 0;
-        $commission = $hawala->commission ?? 0;
-
-        $wallet = self::getWallet($storeId, $currencyId);
-        $wallet->decrement('balance', $amount + $commission);
-    }
-
-    // Get correct wallet
-    protected static function getWallet($storeId, $currencyId)
-    {
-        return \App\Models\Wallet::firstOrCreate([
-            'owner_type' => \App\Models\Store::class,
-            'owner_id' => $storeId,
-            'currency_id' => $currencyId,
-        ], [
-            'balance' => 0,
-        ]);
-    }
-
-    // Which store should receive the commission?
-    public function getStoreToCredit()
-    {
-        return $this->commission_taken_by === 'sender_store'
-            ? $this->sender_store_id
-            : $this->receiver_store_id;
-    }
+protected static function getWallet($storeId, $currencyId)
+{
+    return \App\Models\Wallet::firstOrCreate([
+        'owner_type' => \App\Models\Store::class,
+        'owner_id' => $storeId,
+        'currency_id' => $currencyId,
+    ], ['balance' => 0]);
+}
 
 
     private static function generateUniqueCode()
