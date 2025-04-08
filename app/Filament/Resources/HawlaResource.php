@@ -14,9 +14,12 @@ use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
-use Laravel\SerializableClosure\Serializers\Native;
+use Filament\Infolists\Infolist;
+use Filament\Infolists\Components\Section;
+use Filament\Infolists\Components\TextEntry;
+use Filament\Infolists\Components\ImageEntry;
+use Filament\Support\Enums\Alignment;
+use Illuminate\Support\Str;
 
 class HawlaResource extends Resource
 {
@@ -24,175 +27,176 @@ class HawlaResource extends Resource
     protected static ?string $navigationGroup = "Hawla Management";
 
     public static function form(Form $form): Form
-{
-    return $form
-        ->schema([
+    {
+        return $form
+            ->schema([
 
-            Forms\Components\Section::make('Sender Details')
-                ->description('Information about the sender.')
-                ->schema([
-                    Forms\Components\Grid::make(3)
-                        ->schema([
-                            Forms\Components\Select::make('hawla_type_id')
-                                ->label('Hawla Type')
-                                ->relationship('hawlaType', 'name')
-                                ->native(false)
-                                ->preload()
-                                ->required(),
+                Forms\Components\Section::make('Sender Details')
+                    ->description('Information about the sender.')
+                    ->schema([
+                        Forms\Components\Grid::make(3)
+                            ->schema([
+                                Forms\Components\Select::make('hawla_type_id')
+                                    ->label('Hawla Type')
+                                    ->relationship('hawlaType', 'name')
+                                    ->native(false)
+                                    ->preload()
+                                    ->required(),
 
-                            Forms\Components\TextInput::make('sender_name')
-                                ->required()
-                                ->maxLength(255),
+                                Forms\Components\TextInput::make('sender_name')
+                                    ->required()
+                                    ->maxLength(255),
 
-                            Forms\Components\TextInput::make('sender_phone')
+                                Forms\Components\TextInput::make('sender_phone')
 
-                                ->required()
-                                ->maxLength(255),
-                        ]),
-                    Select::make('sender_store_id')
-                        ->relationship('senderStore', 'name', function ($query) {
-                            if (!auth()->user()->hasRole('super_admin')) {
-                                $query->where('id', auth()->user()?->store?->id);
-                            }
-                            return $query;
-                        })
-                        ->label('Sender Store')
-                        ->searchable()
-                        ->preload()
-                        ->live() // reactive field
-                        ->required(),
-                ]),
+                                    ->required()
+                                    ->maxLength(255),
+                            ]),
+                        Select::make('sender_store_id')
+                            ->relationship('senderStore', 'name', function ($query) {
+                                if (!auth()->user()->hasRole('super_admin')) {
+                                    $query->where('id', auth()->user()?->store?->id);
+                                }
+                                return $query;
+                            })
+                            ->label('Sender Store')
+                            ->searchable()
+                            ->preload()
+                            ->live() // reactive field
+                            ->required(),
+                    ]),
 
 
-            Forms\Components\Section::make('Receiver Details')
-                ->description('Information about the receiver.')
-                ->schema([
-                    Forms\Components\Grid::make(3)
-                        ->schema([
-                            Forms\Components\TextInput::make('receiver_name')
-                                ->required()
-                                ->maxLength(255),
+                Forms\Components\Section::make('Receiver Details')
+                    ->description('Information about the receiver.')
+                    ->schema([
+                        Forms\Components\Grid::make(3)
+                            ->schema([
+                                Forms\Components\TextInput::make('receiver_name')
+                                    ->required()
+                                    ->maxLength(255),
 
-                            Forms\Components\TextInput::make('receiver_father')
-                                ->maxLength(255),
+                                Forms\Components\TextInput::make('receiver_father')
+                                    ->maxLength(255),
 
-                                Forms\Components\TextInput::make('receiver_phone_number')
+                                    Forms\Components\TextInput::make('receiver_phone_number')
 
-                                ->maxLength(20),
-                        ]),
+                                    ->maxLength(20),
+                            ]),
 
-                    Forms\Components\Textarea::make('receiver_address')
-                        ->columnSpanFull(),
+                        Forms\Components\Textarea::make('receiver_address')
+                            ->columnSpanFull(),
 
-                    Select::make('receiver_store_id')
-                        ->relationship('receiverStore', 'name', function ($query, $get) {
-                            $senderStoreId = $get('sender_store_id');
+                        Select::make('receiver_store_id')
+                            ->relationship('receiverStore', 'name', function ($query, $get) {
+                                $senderStoreId = $get('sender_store_id');
 
-                            if ($senderStoreId) {
-                                $query->where('id', '!=', $senderStoreId);
-                            }
+                                if ($senderStoreId) {
+                                    $query->where('id', '!=', $senderStoreId);
+                                }
 
-                            return $query;
-                        })
-                        ->label('Receiver Store')
-                        ->searchable()
-                        ->native(false)
-                        ->searchable()
-                        ->preload()
-                        ->required(),
-                ]),
+                                return $query;
+                            })
+                            ->label('Receiver Store')
+                            ->searchable()
+                            ->native(false)
+                            ->searchable()
+                            ->preload()
+                            ->required(),
+                    ]),
                 Forms\Components\Section::make('Amounts & Currency')
-    ->description('Financial values and currency types.')
-    ->schema([
-        Forms\Components\Grid::make(4)->schema([
-            // Given Currency
-            Forms\Components\Select::make('given_amount_currency_id')
-                ->relationship('givenCurrency', 'code')
-                ->label('Given Currency')
-                ->native()
-                ->required()
-                ->live()
-                ->afterStateUpdated(function ($state, callable $set, callable $get) {
-                    if (!$get('receiving_amount_currency_id')) {
-                        $set('receiving_amount_currency_id', $state);
-                    }
-                    self::handleExchangeAndCommission($get, $set);
-                }),
+                ->description('Financial values and currency types.')
+            ->schema([
+                Forms\Components\Grid::make(4)->schema([
+                // Given Currency
+                Forms\Components\Select::make('given_amount_currency_id')
+                    ->relationship('givenCurrency', 'code')
+                    ->label('Given Currency')
+                    ->native()
+                    ->required()
+                    ->live()
+                    ->afterStateUpdated(function ($state, callable $set, callable $get) {
+                        if (!$get('receiving_amount_currency_id')) {
+                            $set('receiving_amount_currency_id', $state);
+                        }
+                        self::handleExchangeAndCommission($get, $set);
+                    }),
 
-            // Given Amount
-            Forms\Components\TextInput::make('given_amount')
-                ->required()
-                ->numeric()
-                ->live(debounce: 500)
-                ->afterStateUpdated(function ($state, callable $set, callable $get) {
-                    self::handleExchangeAndCommission($get, $set);
-                }),
+                // Given Amount
+                Forms\Components\TextInput::make('given_amount')
+                    ->required()
+                    ->numeric()
+                    ->live(debounce: 500)
+                    ->afterStateUpdated(function ($state, callable $set, callable $get) {
+                        self::handleExchangeAndCommission($get, $set);
+                    }),
 
-            // Receiving Currency
-            Forms\Components\Select::make('receiving_amount_currency_id')
-                ->relationship('receivingCurrency', 'code')
-                ->label('Receiving Currency')
-                ->native()
-                ->preload()
-                ->required()
-                ->live()
-                ->afterStateUpdated(function ($state, callable $set, callable $get) {
-                    self::handleExchangeAndCommission($get, $set);
-                }),
+                // Receiving Currency
+                Forms\Components\Select::make('receiving_amount_currency_id')
+                    ->relationship('receivingCurrency', 'code')
+                    ->label('Receiving Currency')
+                    ->native()
+                    ->preload()
+                    ->required()
+                    ->live()
+                    ->afterStateUpdated(function ($state, callable $set, callable $get) {
+                        self::handleExchangeAndCommission($get, $set);
+                    }),
 
-            // Receiving Amount
-            Forms\Components\TextInput::make('receiving_amount')
-                ->required()
-                ->numeric()
-                ->readOnly(),
-        ]),
-
-        Forms\Components\Grid::make(3)->schema([
-            // Commission Type
-            Forms\Components\Radio::make('store_commission')
-                ->label('Store Commission')
-                ->options(['range' => 'Range'] + \App\Models\CommissionType::pluck('name', 'id')->toArray())
-                ->default('range')
-                ->inline()
-                ->columnSpan(2)
-                ->live()
-                ->dehydrated(false)
-                ->afterStateUpdated(fn (callable $set, callable $get) => self::handleExchangeAndCommission($get, $set)),
-
-            // Deduct Checkbox
-            Forms\Components\Checkbox::make('deduct_commission')
-                ->label('Deduct Commission')
-                ->default(true)
-                ->live()
-                ->dehydrated(false)
-                ->afterStateUpdated(fn ($state, callable $set, callable $get) => self::handleExchangeAndCommission($get, $set)),
-
-            // Exchange Rate & Commission
-            Forms\Components\TextInput::make('exchange_rate')
-                ->numeric()
-                ->readOnly(),
-
-            Forms\Components\TextInput::make('commission')
-                ->numeric()
-                ->readOnly(),
-            Forms\Components\Select::make('commission_taken_by')
-                ->options([
-                    'sender_store' => 'Sender Store',
-                    'receiver_store' => 'Receiver Store',
-                ])
-                ->default('sender_store')
-                ->searchable()
-                ->preload()
-                ->live()
-                ->afterStateUpdated(fn ($state, callable $set, callable $get) => self::handleExchangeAndCommission($get, $set)),
-        ]),
+                // Receiving Amount
+                Forms\Components\TextInput::make('receiving_amount')
+                    ->required()
+                    ->numeric()
+                    ->readOnly(),
             ]),
-           Forms\Components\Section::make('Note')
-                ->schema([
-                    Forms\Components\Textarea::make('note')
-                        ->columnSpanFull()
-                        ->rows(3),
-                ]),
+
+            Forms\Components\Grid::make(3)->schema([
+                // Commission Type
+                Forms\Components\Radio::make('store_commission')
+                    ->label('Store Commission')
+                    ->options(['range' => 'Range'] + \App\Models\CommissionType::pluck('name', 'id')->toArray())
+                    ->default('range')
+                    ->inline()
+                    ->columnSpan(2)
+                    ->live()
+                    ->dehydrated(false)
+                    ->afterStateUpdated(fn (callable $set, callable $get) => self::handleExchangeAndCommission($get, $set)),
+
+                // Deduct Checkbox
+                Forms\Components\Checkbox::make('deduct_commission')
+                    ->label('Deduct Commission')
+                    ->default(true)
+                    ->live()
+                    ->dehydrated(false)
+                    ->afterStateUpdated(fn ($state, callable $set, callable $get) => self::handleExchangeAndCommission($get, $set)),
+
+                // Exchange Rate & Commission
+                Forms\Components\TextInput::make('exchange_rate')
+                    ->numeric()
+                    ->readOnly(),
+
+                Forms\Components\TextInput::make('commission')
+                    ->numeric()
+                    ->readOnly(),
+                Forms\Components\Select::make('commission_taken_by')
+                    ->options([
+                        'sender_store' => 'Sender Store',
+                        'receiver_store' => 'Receiver Store',
+                    ])
+                    ->default('sender_store')
+                    ->searchable()
+                    ->preload()
+                    ->live()
+                    ->afterStateUpdated(fn ($state, callable $set, callable $get) => self::handleExchangeAndCommission($get, $set)),
+            ]),
+            ]),
+
+                Forms\Components\Section::make('Note')
+                    ->schema([
+                        Forms\Components\Textarea::make('note')
+                            ->columnSpanFull()
+                            ->rows(3),
+                    ]),
 
 
 
@@ -232,11 +236,11 @@ class HawlaResource extends Resource
                                 ->directory('receiver_verification_documents')
                                 ->preserveFilenames()
                             ]),
-            ]);
-        }
+        ]);
+    }
 
-        public static function table(Table $table): Table
-        {
+    public static function table(Table $table): Table
+    {
             return $table
                 ->columns([
                     Tables\Columns\TextColumn::make('uuid')
@@ -331,7 +335,106 @@ class HawlaResource extends Resource
                         Tables\Actions\DeleteBulkAction::make(),
                     ]),
                 ]);
-        }
+    }
+
+    public static function infolist(Infolist $infolist): Infolist
+    {
+        return $infolist
+            ->schema([
+                Section::make('💼 Hawla Summary')
+                    ->description('This is the full overview of the hawla transaction.')
+                    ->icon('heroicon-o-clipboard-document-check')
+                    ->columns(3)
+                    ->schema([
+                        TextEntry::make('uuid')
+                            ->label('Tracking Code')
+                            ->copyable()
+                            ->badge()
+                            ->color('primary'),
+                        TextEntry::make('hawlaType.name')->label('Hawla Type')->badge()->color('info'),
+                        TextEntry::make('date')->label('Date')->dateTime()->color('gray'),
+                    ]),
+
+                Section::make('🧍 Sender')
+                    ->columns(3)
+                    ->schema([
+                        TextEntry::make('sender_name')->label('Name')->icon('heroicon-o-user-circle')->weight('bold'),
+                        TextEntry::make('sender_phone')->label('Phone')->icon('heroicon-o-phone'),
+                        TextEntry::make('senderStore.name')->label('Store')->icon('heroicon-o-building-storefront')->badge()->color('success'),
+                    ]),
+
+                Section::make('👤 Receiver')
+                    ->columns(3)
+                    ->schema([
+                        TextEntry::make('receiver_name')->label('Name')->icon('heroicon-o-user-circle')->weight('bold'),
+                        TextEntry::make('receiver_father')->label('Father Name'),
+                        TextEntry::make('receiver_phone_number')->label('Phone')->icon('heroicon-o-phone'),
+                        TextEntry::make('receiver_address')->label('Address')->columnSpanFull()->markdown(),
+                        TextEntry::make('receiverStore.name')->label('Store')->icon('heroicon-o-building-storefront')->badge()->color('warning'),
+                    ]),
+
+                Section::make('💸 Money & Currency')
+                    ->columns(3)
+                    ->schema([
+                        TextEntry::make('given_amount')->label('Given Amount')->prefix('💰')->formatStateUsing(fn ($state) => number_format($state, 2)),
+                        TextEntry::make('givenCurrency.code')->label('Given Currency')->badge()->color('gray'),
+                        TextEntry::make('receiving_amount')->label('Receiving Amount')->prefix('💸')->formatStateUsing(fn ($state) => number_format($state, 2)),
+                        TextEntry::make('receivingCurrency.code')->label('Receiving Currency')->badge()->color('success'),
+                        TextEntry::make('exchange_rate')->label('Exchange Rate')->prefix('🔁')->formatStateUsing(fn ($state) => $state ? number_format($state, 4) : '-'),
+                    ]),
+
+                Section::make('📊 Commission & Logic')
+                    ->columns(2)
+                    ->schema([
+                        TextEntry::make('commission')->label('Commission Amount')->prefix('💼')->formatStateUsing(fn ($state) => number_format($state, 2))->color('gray'),
+                        TextEntry::make('commission_taken_by')
+                            ->label('Taken By')
+                            ->badge()
+                            ->color(fn ($state) => $state === 'sender_store' ? 'info' : 'success')
+                            ->formatStateUsing(fn ($state) => Str::headline($state)),
+                        TextEntry::make('store_commission')
+                            ->label('Commission Type')
+                            ->badge()
+                            ->color('gray')
+                            ->formatStateUsing(fn ($state) => $state === 'range' ? 'Range Based' : (\App\Models\CommissionType::find($state)?->name ?? '-')),
+                    ]),
+
+                Section::make('📋 Status & Metadata')
+                    ->columns(2)
+                    ->schema([
+                        TextEntry::make('status')
+                            ->label('Status')
+                            ->badge()
+                            ->icon(fn ($state) => match ($state) {
+                                'pending' => 'heroicon-o-clock',
+                                'in_progress' => 'heroicon-o-arrow-path',
+                                'completed' => 'heroicon-o-check-circle',
+                                'cancelled' => 'heroicon-o-x-circle',
+                            })
+                            ->color(fn ($state) => match ($state) {
+                                'pending' => 'gray',
+                                'in_progress' => 'warning',
+                                'completed' => 'success',
+                                'cancelled' => 'danger',
+                            })
+                            ->weight('medium'),
+                        TextEntry::make('creator.name')->label('Created By')->icon('heroicon-o-user')->color('gray'),
+                        TextEntry::make('note')->label('Note')->markdown()->columnSpanFull()->visible(fn ($state) => filled($state)),
+                    ]),
+
+                Section::make('📁 Verification Document')
+                    ->visible(fn ($record) => filled($record->receiver_verification_document))
+                    ->columns(1)
+                    ->schema([
+                        ImageEntry::make('receiver_verification_document')
+                            ->label('Uploaded Document')
+                            ->width('100%')
+                            ->height('auto')
+                            ->disk('public') // customize if needed
+                            ->openUrlInNewTab(),
+                    ]),
+            ]);
+    }
 
     public static function getRelations(): array
     {
