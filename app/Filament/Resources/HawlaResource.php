@@ -176,8 +176,7 @@ class HawlaResource extends Resource
                     ->readOnly(),
 
                 Forms\Components\TextInput::make('commission')
-                    ->numeric()
-                    ->readOnly(),
+                    ->numeric(),
                 Forms\Components\Select::make('commission_taken_by')
                     ->options([
                         'sender_store' => 'Sender Store',
@@ -209,7 +208,6 @@ class HawlaResource extends Resource
                                 Forms\Components\Select::make('status')
                                     ->label('Status')
                                     ->options([
-                                         'pending' => 'Pending',
                                          'in_progress' => 'In Progress',
                                          'completed' => 'Completed',
                                          'cancelled' => 'Cancelled',
@@ -242,6 +240,7 @@ class HawlaResource extends Resource
     public static function table(Table $table): Table
     {
             return $table
+            ->defaultSort('created_at', 'desc')
                 ->columns([
                     Tables\Columns\TextColumn::make('uuid')
                         ->label('UUID')
@@ -290,12 +289,12 @@ class HawlaResource extends Resource
                         ->label('Status')
                         ->sortable()
                         ->colors([
-                            'primary' => fn ($state) => $state === 'Pending',
-                            'success' => fn ($state) => $state === 'Completed',
-                            'danger' => fn ($state) => $state === 'Cancelled',
+                            'primary' => fn ($state) => $state === 'in_progress',
+                            'success' => fn ($state) => $state === 'completed',
+                            'danger' => fn ($state) => $state === 'cancelled',
                         ])
                         ->icons([
-                            'heroicon-o-clock' => 'Pending',
+                            'heroicon-o-clock' => 'In Progress',
                             'heroicon-o-check-circle' => 'Completed',
                             'heroicon-o-x-circle' => 'Cancelled',
                         ]),
@@ -313,6 +312,13 @@ class HawlaResource extends Resource
                         ->searchable()
                         ->sortable(),
 
+                        Tables\Columns\TextColumn::make('paid_at')
+                        ->label('Paid At')
+                        ->placeholder('Not Paid')
+                        ->dateTime()
+                        ->sortable()
+                        ->toggleable(),
+
                     Tables\Columns\TextColumn::make('created_at')
                         ->label('Created')
                         ->dateTime()
@@ -328,14 +334,25 @@ class HawlaResource extends Resource
 
                 ->actions([
                     Tables\Actions\ViewAction::make(),
-                    Tables\Actions\EditAction::make(),
+                    Tables\Actions\EditAction::make()
+                    ->visible(fn ($record) => $record->status === 'in_progress'),
                     Tables\Actions\Action::make('pay')
                         ->label('Pay')
                         ->icon('heroicon-o-currency-dollar')
                         ->action(function ($record) {
                             $record->pay();
                         })
+                        ->visible(fn ($record) => is_null($record->paid_at) && $record->status === 'in_progress')
                         ->requiresConfirmation(),
+                        Tables\Actions\Action::make('cancel')
+                            ->label('Cancel')
+                            ->icon('heroicon-o-x-circle')
+                            ->color('warning')
+                            ->action(function ($record) {
+                                $record->refund();
+                            })
+                            ->requiresConfirmation()
+                            ->visible(fn ($record) => $record->status === 'in_progress'),
                 ])
                 ->bulkActions([
                     Tables\Actions\BulkActionGroup::make([
@@ -413,13 +430,11 @@ class HawlaResource extends Resource
                             ->label('Status')
                             ->badge()
                             ->icon(fn ($state) => match ($state) {
-                                'pending' => 'heroicon-o-clock',
                                 'in_progress' => 'heroicon-o-arrow-path',
                                 'completed' => 'heroicon-o-check-circle',
                                 'cancelled' => 'heroicon-o-x-circle',
                             })
                             ->color(fn ($state) => match ($state) {
-                                'pending' => 'gray',
                                 'in_progress' => 'warning',
                                 'completed' => 'success',
                                 'cancelled' => 'danger',

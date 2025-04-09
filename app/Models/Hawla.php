@@ -14,119 +14,176 @@ class Hawla extends Model
 
 
     protected static function boot()
-{
-    parent::boot();
+    {
+        parent::boot();
 
-    static::creating(function ($hawala) {
-        if (empty($hawala->uuid)) {
-            $hawala->uuid = self::generateUniqueCode();
-        }
-    });
+        static::creating(function ($hawala) {
+            if (empty($hawala->uuid)) {
+                $hawala->uuid = self::generateUniqueCode();
+            }
+        });
 
-    static::created(function ($hawala) {
-        self::adjustWalletOnCreate($hawala);
-    });
+        static::created(function ($hawala) {
+            self::adjustWalletOnCreate($hawala);
+        });
 
-    static::updating(function ($hawala) {
-        $original = $hawala->getOriginal();
-        self::adjustWalletOnUpdate($hawala, $original);
-    });
+        static::updating(function ($hawala) {
+            $original = $hawala->getOriginal();
+            self::adjustWalletOnUpdate($hawala, $original);
+        });
 
-    static::deleting(function ($hawala) {
-        self::adjustWalletOnDelete($hawala);
-    });
-}
+        static::deleting(function ($hawala) {
+            self::adjustWalletOnDelete($hawala);
+        });
+    }
 
-public function pay()
-{
-    // if ($this->paid_at) return;
+    public function refund()
+    {
+        try {
+            // Only allow refund when the transaction is not paid and is still pending
+            if ($this->paid_at) {
+                \Filament\Notifications\Notification::make()
+                    ->title('Refund Error')
+                    ->body('This transaction has been paid and cannot be refunded.')
+                    ->danger()
+                    ->send();
+                return;
+            }
 
-    try {
-        $wallet = self::getWallet($this->receiver_store_id, $this->given_amount_currency_id);
+            if ($this->status !== 'in_progress') {
+                \Filament\Notifications\Notification::make()
+                    ->title('Refund Error')
+                    ->body('Only pending transactions can be refunded.')
+                    ->danger()
+                    ->send();
+                return;
+            }
 
-        // Calculate how much to deduct from receiver
-        if ($this->commission_taken_by === 'receiver_store') {
-            $deductAmount = $this->given_amount - ($this->commission ?? 0);
-        } else {
-            $deductAmount = $this->given_amount;
-        }
+            // Reverse the credit applied to the sender's wallet during creation.
+            $creditAmount = $this->given_amount;
+            if ($this->commission_taken_by === 'sender_store') {
+                $creditAmount += ($this->commission ?? 0);
+            }
+            $senderWallet = self::getWallet($this->sender_store_id, $this->given_amount_currency_id);
 
-        if ($wallet->balance < $deductAmount) {
-             \Filament\Notifications\Notification::make()
-                ->title('Insufficient Balance')
-                ->body('The receiver store does not have enough balance to complete this transaction.')
+            // Check if balance is enough for refund
+            if ($senderWallet->balance < $creditAmount) {
+                \Filament\Notifications\Notification::make()
+                    ->title('Refund Error')
+                    ->body('Insufficient balance to process the refund.')
+                    ->danger()
+                    ->send();
+                return;
+            }
+
+            $senderWallet->decrement('balance', $creditAmount);
+
+            $this->status = 'cancelled';
+            $this->save();
+
+            \Filament\Notifications\Notification::make()
+                ->title('Refund Successful')
+                ->body('Transaction has been successfully refunded.')
+                ->success()
+                ->send();
+
+        } catch (\Exception $e) {
+            \Filament\Notifications\Notification::make()
+                ->title('Refund Error')
+                ->body('Refund failed: ' . $e->getMessage())
                 ->danger()
                 ->send();
+        }
+    }
+
+    public function pay()
+    {
+        if ($this->paid_at) return;
+
+        try {
+            $wallet = self::getWallet($this->receiver_store_id, $this->receiving_amount_currency_id);
+
+            // Use the receiving amount and include commission if it's taken by the receiver store.
+            $deductAmount = $this->receiving_amount;
+            if ($this->commission_taken_by === 'receiver_store') {
+                $deductAmount -= ($this->commission ?? 0);
+            }
+
+            if ($wallet->balance < $deductAmount) {
+                \Filament\Notifications\Notification::make()
+                    ->title('Insufficient Balance')
+                    ->body('The receiver store does not have enough balance to complete this transaction.')
+                    ->danger()
+                    ->send();
                 return;
+            }
+
+            $wallet->decrement('balance', $deductAmount);
+
+            $this->paid_at = now();
+            $this->status = 'completed';
+            $this->save();
+
+            \Filament\Notifications\Notification::make()
+                ->title('Transaction Successful')
+                ->body('Hawala marked as paid and balance updated successfully.')
+                ->success()
+                ->send();
+
+        } catch (\Exception $e) {
+            \Filament\Notifications\Notification::make()
+                ->title('Error')
+                ->body('Something went wrong: ' . $e->getMessage())
+                ->danger()
+                ->send();
+        }
+    }
+
+    protected static function adjustWalletOnCreate($hawala)
+    {
+        $wallet = self::getWallet($hawala->sender_store_id, $hawala->given_amount_currency_id);
+
+        $amount = $hawala->given_amount;
+        if ($hawala->commission_taken_by === 'sender_store') {
+            $amount += ($hawala->commission ?? 0);
         }
 
-        $wallet->decrement('balance', $deductAmount);
-
-        $this->paid_at = now();
-        $this->status = 'completed';
-        $this->save();
-
-
-         \Filament\Notifications\Notification::make()
-            ->title('Transaction Successful')
-            ->body('Hawala marked as paid and balance updated successfully.')
-            ->success()
-            ->send();
-
-    } catch (\Exception $e) {
-         \Filament\Notifications\Notification::make()
-            ->title('Error')
-            ->body('Something went wrong: ' . $e->getMessage())
-            ->danger()
-            ->send();
-
-    }
-}
-protected static function adjustWalletOnCreate($hawala)
-{
-    $wallet = self::getWallet($hawala->sender_store_id, $hawala->given_amount_currency_id);
-
-    $amount = $hawala->given_amount;
-    if ($hawala->commission_taken_by === 'sender_store') {
-        $amount += ($hawala->commission ?? 0);
+        $wallet->increment('balance', $amount);
     }
 
-    $wallet->increment('balance', $amount);
-}
+    protected static function adjustWalletOnUpdate($hawala, $original)
+    {
+        $oldWallet = self::getWallet($original['sender_store_id'], $original['given_amount_currency_id']);
+        $oldAmount = $original['given_amount'];
+        if ($original['commission_taken_by'] === 'sender_store') {
+            $oldAmount += ($original['commission'] ?? 0);
+        }
+        $oldWallet->decrement('balance', $oldAmount);
 
-protected static function adjustWalletOnUpdate($hawala, $original)
-{
-    $oldWallet = self::getWallet($original['sender_store_id'], $original['given_amount_currency_id']);
-    $oldAmount = $original['given_amount'];
-    if ($original['commission_taken_by'] === 'sender_store') {
-        $oldAmount += ($original['commission'] ?? 0);
-    }
-    $oldWallet->decrement('balance', $oldAmount);
-
-    // Apply new logic
-    self::adjustWalletOnCreate($hawala);
-}
-
-protected static function adjustWalletOnDelete($hawala)
-{
-    $wallet = self::getWallet($hawala->sender_store_id, $hawala->given_amount_currency_id);
-
-    $amount = $hawala->given_amount;
-    if ($hawala->commission_taken_by === 'sender_store') {
-        $amount += ($hawala->commission ?? 0);
+        // Apply new logic
+        self::adjustWalletOnCreate($hawala);
     }
 
-    $wallet->decrement('balance', $amount);
-}
+    protected static function adjustWalletOnDelete($hawala)
+    {
+        $wallet = self::getWallet($hawala->sender_store_id, $hawala->given_amount_currency_id);
 
-protected static function getWallet($storeId, $currencyId)
-{
-    return \App\Models\Wallet::firstOrCreate([
-        'owner_type' => \App\Models\Store::class,
-        'owner_id' => $storeId,
-        'currency_id' => $currencyId,
-    ], ['balance' => 0]);
-}
+        $amount = $hawala->given_amount;
+        if ($hawala->commission_taken_by === 'sender_store') {
+            $amount += ($hawala->commission ?? 0);
+        }
+
+        $wallet->decrement('balance', $amount);
+    }
+
+    protected static function getWallet($storeId, $currencyId)
+    {
+        return \App\Models\Wallet::firstOrCreate([
+            'owner_type' => \App\Models\Store::class,
+            'owner_id' => $storeId,
+            'currency_id' => $currencyId,
+        ], ['balance' => 0]);
+    }
 
 
     private static function generateUniqueCode()
