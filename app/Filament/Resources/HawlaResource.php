@@ -25,6 +25,7 @@ class HawlaResource extends Resource
 {
     protected static ?string $model = Hawla::class;
     protected static ?string $navigationGroup = "Hawla Management";
+    protected static ?int $navigationSort = 1;
 
     public static function form(Form $form): Form
     {

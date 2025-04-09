@@ -21,6 +21,7 @@ class StoreContactResource extends Resource
     protected static ?string $model = StoreContact::class;
 
     protected static ?string $navigationGroup = 'Store Management';
+    protected static ?int $navigationSort = 2;
 
     /**
      * Form Definition

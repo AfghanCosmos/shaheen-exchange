@@ -14,7 +14,7 @@ class User extends Authenticatable implements CanLoginDirectly
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable, SoftDeletes, HasRoles;
-    
+
     public function canLoginDirectly(): bool
     {
         return true;
@@ -147,5 +147,14 @@ class User extends Authenticatable implements CanLoginDirectly
         return $this->hasMany(BankAccount::class, 'user_id')
           ; // 👈 Filter only customer accounts
     }
+
+    public function createdHawlas()
+    {
+        return $this->hasMany(Hawla::class, 'created_by')
+          ; // 👈 Filter only customer accounts
+    }
+
+
+
 
 }

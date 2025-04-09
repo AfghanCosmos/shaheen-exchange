@@ -69,13 +69,19 @@ class AdminPanelProvider extends PanelProvider
                 ->collapsed(),
 
 
+                NavigationGroup::make()
+                ->label(fn(): string => __('Store Management'))
+                ->icon('heroicon-o-building-storefront')
+                ->collapsed(),
+
+
 
                 NavigationGroup::make()
                 ->label(fn(): string => __('Customer Management'))
                 ->icon('heroicon-o-user-group')
                 ->collapsed(),
 
-                
+
             NavigationGroup::make()
                 ->label(fn(): string => __('Transaction'))
                 ->icon('heroicon-o-cube-transparent')
@@ -88,10 +94,6 @@ class AdminPanelProvider extends PanelProvider
                 ->icon('heroicon-o-wallet')
                 ->collapsed(),
 
-                 NavigationGroup::make()
-                ->label(fn(): string => __('Store Management'))
-                ->icon('heroicon-o-building-storefront')
-                ->collapsed(),
 
                 NavigationGroup::make()
                     ->label(fn(): string => __('Human Resources'))
