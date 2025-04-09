@@ -15,7 +15,7 @@ use App\Filament\Resources\StoreResource\RelationManagers\StoreCommissionsRelati
 class StoreCommissionResource extends Resource
 {
     protected static ?string $model = StoreCommission::class;
-    protected static ?int $navigationSort = 3;
+    protected static ?int $navigationSort = 4;
     protected static ?string $navigationGroup = "Store Management";
 
     public static function form(Form $form): Form
