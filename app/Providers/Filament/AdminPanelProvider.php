@@ -62,10 +62,6 @@ class AdminPanelProvider extends PanelProvider
             )
             ->navigationGroups([
 
-            NavigationGroup::make()
-                ->label(fn(): string => __('Customer Management'))
-                ->icon('heroicon-o-user-group')
-                ->collapsed(),
 
                 NavigationGroup::make()
                 ->label(fn(): string => __('Hawla Management'))
@@ -73,6 +69,13 @@ class AdminPanelProvider extends PanelProvider
                 ->collapsed(),
 
 
+
+                NavigationGroup::make()
+                ->label(fn(): string => __('Customer Management'))
+                ->icon('heroicon-o-user-group')
+                ->collapsed(),
+
+                
             NavigationGroup::make()
                 ->label(fn(): string => __('Transaction'))
                 ->icon('heroicon-o-cube-transparent')
