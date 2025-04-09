@@ -8,9 +8,9 @@ use App\Filament\Resources\StoreResource\RelationManagers\SenderHawlasRelationMa
 use App\Filament\Resources\StoreResource\RelationManagers\WalletsRelationManager;
 use App\Filament\Resources\StoreResource\RelationManagers\StoreCommissionRangesRelationManager;
 use App\Filament\Resources\StoreResource\RelationManagers\StoreCommissionsRelationManager;
+use Filament\Infolists\Components\RepeatableEntry;
 
-
-
+use App\Models\Hawla;
 use App\Models\Store;
 use Carbon\Carbon;
 use Filament\Forms;
@@ -292,66 +292,168 @@ public static function infolist(Infolist $infolist): Infolist
                     ]),
                 ]),
 
-            InfolistSection::make('💱 Hawla Transactions Summary')
-                ->schema([
-                    Grid::make(4)->schema([
-                        TextEntry::make('created_at')
-                            ->label('Total Given Amount (Completed)')
-                            ->icon('heroicon-o-arrow-up-right')
-                            ->color('info')
-                            ->formatStateUsing(fn ($record) => number_format(
-                                \App\Models\Hawla::where('sender_store_id', $record->id)
-                                    ->where('status', 'completed')
-                                    ->sum('given_amount'),
-                                2
-                            )),
+    //             InfolistSection::make('💱 Hawala Summary')
+    // ->schema([
 
-                        TextEntry::make('created_at')
-                            ->label('Total Received Amount (Completed)')
-                            ->icon('heroicon-o-arrow-down-left')
-                            ->color('success')
-                            ->formatStateUsing(fn ($record) => number_format(
-                                \App\Models\Hawla::where('receiver_store_id', $record->id)
-                                    ->where('status', 'completed')
-                                    ->sum('receiving_amount'),
-                                2
-                            )),
+    // InfolistSection::make('💱 Hawala Summary')
+    // ->schema([
+    //     // 📊 Overall Totals - Dynamic Summary
+    //     TextEntry::make('created_at')
+    //         ->label('Total Given')
+    //         ->formatStateUsing(function ($record) {
+    //         $summary = $record->hawlaOverallSummary();
+    //         $total = 0;
+    //         foreach ($summary as $totals) {
+    //             $total += (float) str_replace(',', '', $totals['total_given']);
+    //         }
+    //         return number_format($total, 2);
+    //         })
+    //         ->color('info')
+    //         ->icon('heroicon-o-arrow-up-right'),
 
-                        TextEntry::make('created_at')
-                            ->label('Remaining Balance')
-                            ->icon('heroicon-o-calculator')
-                            ->color('gray')
-                            ->formatStateUsing(function ($record) {
-                                $given = \App\Models\Hawla::where('sender_store_id', $record->id)
-                                    ->where('status', 'completed')
-                                    ->sum('given_amount');
+    //     TextEntry::make('created_at')
+    //         ->label('Total Received')
+    //         ->formatStateUsing(function ($record) {
+    //         $summary = $record->hawlaOverallSummary();
+    //         $total = 0;
+    //         foreach ($summary as $totals) {
+    //             $total += (float) str_replace(',', '', $totals['total_received']);
+    //         }
+    //         return number_format($total, 2);
+    //         })
+    //         ->color('success')
+    //         ->icon('heroicon-o-arrow-down-left'),
 
-                                $received = \App\Models\Hawla::where('receiver_store_id', $record->id)
-                                    ->where('status', 'completed')
-                                    ->sum('receiving_amount');
+    //     TextEntry::make('created_at')
+    //         ->label('Net Balance')
+    //         ->formatStateUsing(function ($record) {
+    //         $summary = $record->hawlaOverallSummary();
+    //         $net = 0;
+    //         foreach ($summary as $totals) {
+    //             $net += (float) str_replace(',', '', $totals['net_balance']);
+    //         }
+    //         return number_format($net, 2);
+    //         })
+    //         ->color('gray')
+    //         ->icon('heroicon-o-calculator'),
 
-                                return number_format($given - $received, 2);
-                            }),
+    //     // 🏪 Store-wise breakdown
+    //     RepeatableEntry::make('hawala_per_store')
+    //         ->label('🧾 Summary with Each Store')
+    //         ->schema([
+    //             TextEntry::make('store')->label('Store'),
+    //             TextEntry::make('currency')->label('Currency'),
+    //             TextEntry::make('total_given')->label('Total Given')->color('info'),
+    //             TextEntry::make('total_received')->label('Total Received')->color('success'),
+    //             TextEntry::make('total_commission')->label('Total Commission')->color('gray'),
+    //             TextEntry::make('avg_exchange_rate')->label('Avg. Exchange Rate'),
+    //         ])
+    //         ->getStateUsing(fn($record) => $record->hawlaPerStoreSummary()),
 
-                        TextEntry::make('created_at')
-                            ->label('Given To Stores')
-                            ->icon('heroicon-o-arrow-right-circle')
-                            ->color('info')
-                            ->formatStateUsing(function ($record) {
-                                return \App\Models\Hawla::where('sender_store_id', $record->id)
-                                    ->where('status', 'completed')
-                                    ->with('receiverStore')
-                                    ->get()
-                                    ->groupBy('receiver_store_id')
-                                    ->map(function ($group) {
-                                        $store = $group->first()->receiverStore;
-                                        $amount = number_format($group->sum('given_amount'), 2);
-                                        return optional($store)->name . " ({$amount})";
-                                    })
-                                    ->implode(', ') ?: '—';
-                            }),
-                    ]),
-                ])->columns(1)
+    // ])->columns(1),
+
+    //     // 💰 Total collected from clients (given amount)
+    //     RepeatableEntry::make('created_at')
+    //         ->label('💰 Collected from Clients (Currency Wise)')
+    //         ->schema([
+    //             TextEntry::make('currency')->label('Currency'),
+    //             TextEntry::make('amount')->label('Amount')->color('info'),
+    //         ])
+    //         ->getStateUsing(function ($record) {
+    //             return Hawla::with('givenCurrency')
+    //                 ->where('sender_store_id', $record->id)
+    //                 ->where('status', 'completed')
+    //                 ->get()
+    //                 ->groupBy('given_amount_currency_id')
+    //                 ->map(function ($group) {
+    //                     return [
+    //                         'currency' => optional($group->first()->givenCurrency)->code ?? '—',
+    //                         'amount' => number_format($group->sum('given_amount'), 2),
+    //                     ];
+    //                 })->values()->toArray();
+    //         }),
+
+    //     // 💸 Total paid to other clients (receiving amount)
+    //     RepeatableEntry::make('received_by_currency')
+    //         ->label('💸 Paid to Other Stores’ Clients (Currency Wise)')
+    //         ->schema([
+    //             TextEntry::make('currency')->label('Currency'),
+    //             TextEntry::make('amount')->label('Amount')->color('success'),
+    //         ])
+    //         ->getStateUsing(function ($record) {
+    //             return Hawla::with('receivingCurrency')
+    //                 ->where('receiver_store_id', $record->id)
+    //                 ->where('status', 'completed')
+    //                 ->get()
+    //                 ->groupBy('receiving_amount_currency_id')
+    //                 ->map(function ($group) {
+    //                     return [
+    //                         'currency' => optional($group->first()->receivingCurrency)->code ?? '—',
+    //                         'amount' => number_format($group->sum('receiving_amount'), 2),
+    //                     ];
+    //                 })->values()->toArray();
+    //         }),
+
+    //     // 🏪 Given to other stores
+    //     RepeatableEntry::make('store_given_summary')
+    //         ->label('🏪 Stores I Sent Money To')
+    //         ->schema([
+    //             TextEntry::make('store')->label('To Store'),
+    //             TextEntry::make('currency')->label('Currency'),
+    //             TextEntry::make('total_amount')->label('Total Given')->color('info'),
+    //             TextEntry::make('total_commission')->label('Commission')->color('gray'),
+    //             TextEntry::make('average_exchange_rate')->label('Avg. Exchange Rate')->color('gray'),
+    //         ])
+    //         ->getStateUsing(function ($record) {
+    //             return Hawla::with(['receiverStore', 'givenCurrency'])
+    //                 ->where('sender_store_id', $record->id)
+    //                 ->where('status', 'completed')
+    //                 ->get()
+    //                 ->groupBy(fn ($item) => $item->receiver_store_id . '_' . $item->given_amount_currency_id)
+    //                 ->map(function ($group) {
+    //                     $first = $group->first();
+    //                     return [
+    //                         'store' => optional($first->receiverStore)->name ?? '—',
+    //                         'currency' => optional($first->givenCurrency)->code ?? '—',
+    //                         'total_amount' => number_format($group->sum('given_amount'), 2),
+    //                         'total_commission' => number_format($group->sum('commission'), 2),
+    //                         'average_exchange_rate' => $group->avg('exchange_rate') ? number_format($group->avg('exchange_rate'), 2) : '—',
+    //                     ];
+    //                 })->values()->toArray();
+    //         }),
+
+    //     // 🏪 Received from other stores
+    //     RepeatableEntry::make('store_received_summary')
+    //         ->label('🏪 Stores That Sent To My Clients')
+    //         ->schema([
+    //             TextEntry::make('store')->label('From Store'),
+    //             TextEntry::make('currency')->label('Currency'),
+    //             TextEntry::make('total_amount')->label('Total Received')->color('success'),
+    //             TextEntry::make('total_commission')->label('Commission')->color('gray'),
+    //             TextEntry::make('average_exchange_rate')->label('Avg. Exchange Rate')->color('gray'),
+    //         ])
+    //         ->getStateUsing(function ($record) {
+    //             return Hawla::with(['senderStore', 'receivingCurrency'])
+    //                 ->where('receiver_store_id', $record->id)
+    //                 ->where('status', 'completed')
+    //                 ->get()
+    //                 ->groupBy(fn ($item) => $item->sender_store_id . '_' . $item->receiving_amount_currency_id)
+    //                 ->map(function ($group) {
+    //                     $first = $group->first();
+    //                     return [
+    //                         'store' => optional($first->senderStore)->name ?? '—',
+    //                         'currency' => optional($first->receivingCurrency)->code ?? '—',
+    //                         'total_amount' => number_format($group->sum('receiving_amount'), 2),
+    //                         'total_commission' => number_format($group->sum('commission'), 2),
+    //                         'average_exchange_rate' => $group->avg('exchange_rate') ? number_format($group->avg('exchange_rate'), 2) : '—',
+    //                     ];
+    //                 })->values()->toArray();
+    //         }),
+
+    // ])
+    // ->columns(1),
+
+
         ]);
 
 }

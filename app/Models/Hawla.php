@@ -208,6 +208,7 @@ class Hawla extends Model
         return $this->belongsTo(HawlaType::class);
     }
 
+
     public function senderStore(): BelongsTo
     {
         return $this->belongsTo(Store::class, 'sender_store_id');
