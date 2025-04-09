@@ -2,19 +2,21 @@
 
 namespace App\Filament\Resources\StoreReportResource\Widgets;
 
-use App\Models\Store;
-use Filament\Widgets\Widget;
+use Filament\Widgets\ChartWidget;
 
-class StoreDetailedSummary extends Widget
+class StoreDetailedSummary extends ChartWidget
 {
-    protected static string $view = 'filament.pages.store-report.blade.php';
+    protected static ?string $heading = 'Chart';
 
-    protected function getViewData(): array
+    protected function getData(): array
     {
-        $stores = Store::with(['hawlasGiven.givenCurrency', 'hawlasReceived.receivingCurrency'])->get();
-
         return [
-            'stores' => $stores,
+            //
         ];
+    }
+
+    protected function getType(): string
+    {
+        return 'bar';
     }
 }

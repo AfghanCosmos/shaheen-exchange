@@ -17,6 +17,7 @@ class StoreReport extends Page
         return [
             StoreOverview::class,
             StoreDetailedSummary::class,
+
         ];
     }
 }
