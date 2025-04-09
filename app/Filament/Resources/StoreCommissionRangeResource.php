@@ -21,6 +21,7 @@ class StoreCommissionRangeResource extends Resource
     protected static ?string $model = StoreCommissionRange::class;
 
     protected static ?string $navigationGroup = "Store Management";
+    protected static ?int $navigationSort = 4;
 
     public static function form(Form $form): Form
     {
