@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class SenderHawlasRelationManager extends RelationManager
 {
-    protected static string $relationship = 'senderHawlas';
+    protected static string $relationship = 'sentHawlas';
 
     public function form(Form $form): Form
     {
@@ -24,10 +24,6 @@ class SenderHawlasRelationManager extends RelationManager
     public function table(Table $table): Table
     {
         return HawlaResource::table($table) // Reuse table schema
-
-            ->filters([
-                //
-            ])
             ->headerActions([
                 Tables\Actions\CreateAction::make(),
             ])
