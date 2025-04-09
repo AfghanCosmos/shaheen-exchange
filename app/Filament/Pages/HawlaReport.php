@@ -18,7 +18,7 @@ class HawlaReport extends Page
     {
         return [
             HawlaOverview::class,
-           
+
         ];
     }
 
