@@ -3,6 +3,8 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\StoreResource\Pages;
+use App\Filament\Resources\StoreResource\RelationManagers\ReceiverHawlasRelationManager;
+use App\Filament\Resources\StoreResource\RelationManagers\SenderHawlasRelationManager;
 use App\Filament\Resources\StoreResource\RelationManagers\WalletsRelationManager;
 use App\Filament\Resources\StoreResource\RelationManagers\StoreCommissionRangesRelationManager;
 use App\Filament\Resources\StoreResource\RelationManagers\StoreCommissionsRelationManager;
@@ -363,6 +365,8 @@ public static function infolist(Infolist $infolist): Infolist
     public static function getRelations(): array
     {
         return [
+            ReceiverHawlasRelationManager::class,
+            SenderHawlasRelationManager::class,
             WalletsRelationManager::class,
             StoreCommissionsRelationManager::class,
             StoreCommissionRangesRelationManager::class
