@@ -35,7 +35,7 @@ class Store extends Model
         return $this->hasMany(StoreContact::class);
     }
 
-   
+
 
 
     protected static function boot()
@@ -106,5 +106,16 @@ class Store extends Model
     {
         return $this->hasMany(StoreCommission::class);
     }
+
+    public function senderHawlas()
+    {
+        return $this->hasMany(\App\Models\Hawla::class, 'sender_store_id');
+    }
+
+    public function receiverHawlas()
+    {
+        return $this->hasMany(\App\Models\Hawla::class, 'receiver_store_id');
+    }
+
 
 }

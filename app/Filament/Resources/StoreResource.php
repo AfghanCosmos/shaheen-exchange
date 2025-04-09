@@ -289,7 +289,69 @@ public static function infolist(Infolist $infolist): Infolist
                         TextEntry::make('updated_at')->label('Updated At')->dateTime()->since(),
                     ]),
                 ]),
+
+            InfolistSection::make('💱 Hawla Transactions Summary')
+                ->schema([
+                    Grid::make(4)->schema([
+                        TextEntry::make('created_at')
+                            ->label('Total Given Amount (Completed)')
+                            ->icon('heroicon-o-arrow-up-right')
+                            ->color('info')
+                            ->formatStateUsing(fn ($record) => number_format(
+                                \App\Models\Hawla::where('sender_store_id', $record->id)
+                                    ->where('status', 'completed')
+                                    ->sum('given_amount'),
+                                2
+                            )),
+
+                        TextEntry::make('created_at')
+                            ->label('Total Received Amount (Completed)')
+                            ->icon('heroicon-o-arrow-down-left')
+                            ->color('success')
+                            ->formatStateUsing(fn ($record) => number_format(
+                                \App\Models\Hawla::where('receiver_store_id', $record->id)
+                                    ->where('status', 'completed')
+                                    ->sum('receiving_amount'),
+                                2
+                            )),
+
+                        TextEntry::make('created_at')
+                            ->label('Remaining Balance')
+                            ->icon('heroicon-o-calculator')
+                            ->color('gray')
+                            ->formatStateUsing(function ($record) {
+                                $given = \App\Models\Hawla::where('sender_store_id', $record->id)
+                                    ->where('status', 'completed')
+                                    ->sum('given_amount');
+
+                                $received = \App\Models\Hawla::where('receiver_store_id', $record->id)
+                                    ->where('status', 'completed')
+                                    ->sum('receiving_amount');
+
+                                return number_format($given - $received, 2);
+                            }),
+
+                        TextEntry::make('created_at')
+                            ->label('Given To Stores')
+                            ->icon('heroicon-o-arrow-right-circle')
+                            ->color('info')
+                            ->formatStateUsing(function ($record) {
+                                return \App\Models\Hawla::where('sender_store_id', $record->id)
+                                    ->where('status', 'completed')
+                                    ->with('receiverStore')
+                                    ->get()
+                                    ->groupBy('receiver_store_id')
+                                    ->map(function ($group) {
+                                        $store = $group->first()->receiverStore;
+                                        $amount = number_format($group->sum('given_amount'), 2);
+                                        return optional($store)->name . " ({$amount})";
+                                    })
+                                    ->implode(', ') ?: '—';
+                            }),
+                    ]),
+                ])->columns(1)
         ]);
+
 }
 
 
