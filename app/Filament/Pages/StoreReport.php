@@ -8,9 +8,10 @@ use Filament\Pages\Page;
 
 class StoreReport extends Page
 {
-    protected static ?string $navigationIcon = 'heroicon-o-document-text';
+    protected static ?string $navigationGroup = 'Store Management';
 
     protected static string $view = 'filament.pages.store-report';
+    protected static ?int $navigationSort = 3;
 
     protected function getHeaderWidgets(): array
     {
