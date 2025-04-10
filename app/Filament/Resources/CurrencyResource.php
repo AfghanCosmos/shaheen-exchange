@@ -18,7 +18,8 @@ class CurrencyResource extends Resource
     protected static ?string $model = Currency::class;
 
     // protected static ?string $navigationIcon = 'heroicon-o-currency-dollar';
-    protected static ?string $navigationGroup = 'Settings';
+    protected static ?string $navigationGroup = 'Exchange Management';
+    protected static ?int $navigationSort = 4;
 
 
     public static function form(Form $form): Form

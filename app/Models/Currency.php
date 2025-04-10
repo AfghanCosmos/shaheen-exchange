@@ -25,4 +25,14 @@ class Currency extends Model
     public function sentHawlas() : HasMany {
         return $this->hasMany(Hawla::class, 'receiving_amount_currency_id');
     }
+
+    public function fromCurrencyExchanges()
+    {
+        return $this->hasMany(CurrencyExchange::class, 'from_currency_id');
+    }
+
+    public function toCurrencyExchanges()
+    {
+        return $this->hasMany(CurrencyExchange::class, 'to_currency_id');
+    }
 }

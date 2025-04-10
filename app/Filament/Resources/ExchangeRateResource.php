@@ -14,12 +14,26 @@ class ExchangeRateResource extends Resource
 {
     protected static ?string $model = ExchangeRate::class;
 
-    protected static ?string $navigationGroup = 'Settings';
+    protected static ?string $navigationGroup = 'Exchange Management';
+    protected static ?int $navigationSort = 3;
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
+                Forms\Components\Select::make('store_id')
+                    ->label('Store')
+                    ->relationship('store', 'name')
+                    ->preload()
+                    ->native(false)
+                    ->required(),
+
+                Forms\Components\Select::make('user_id')
+                    ->label('User')
+                    ->relationship('user', 'name')
+                    ->preload()
+                    ->native(false)
+                    ->required(),
                 Forms\Components\Select::make('from_currency_id')
                     ->label('From Currency')
                     ->relationship('fromCurrency', 'name')
