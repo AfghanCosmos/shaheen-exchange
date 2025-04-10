@@ -466,7 +466,7 @@ class HawlaResource extends Resource
             'index' => Pages\ListHawlas::route('/'),
             'create' => Pages\CreateHawla::route('/create'),
             'edit' => Pages\EditHawla::route('/{record}/edit'),
-            //'view' => Pages\ViewHawla::route('/{record}'),
+            'view' => Pages\ViewHawla::route('/{record}'),
         ];
     }
 

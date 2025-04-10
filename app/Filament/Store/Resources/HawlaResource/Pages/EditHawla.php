@@ -16,4 +16,12 @@ class EditHawla extends EditRecord
             Actions\DeleteAction::make(),
         ];
     }
+
+    protected function mutateFormDataBeforeSave(array $data): array
+    {
+        // Protect sender_store_id from modification
+        $data['sender_store_id'] = $this->record->sender_store_id;
+
+        return $data;
+    }
 }
