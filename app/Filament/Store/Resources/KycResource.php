@@ -3,7 +3,7 @@
 namespace App\Filament\Store\Resources;
 
 use App\Filament\Store\Resources\KycResource\Pages;
-use App\Models\Kyc;
+use App\Models\KYC;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Forms\Components\Section;
@@ -24,7 +24,7 @@ use Illuminate\Support\Facades\Storage;
 
 class KycResource extends Resource
 {
-    protected static ?string $model = Kyc::class;
+    protected static ?string $model = KYC::class;
 
     protected static ?string $navigationGroup = 'Customer Management';
 

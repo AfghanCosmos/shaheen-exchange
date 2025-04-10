@@ -3,7 +3,7 @@
 namespace App\Policies;
 
 use App\Models\User;
-use App\Models\Kyc;
+use App\Models\KYC;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
 class KycPolicy
