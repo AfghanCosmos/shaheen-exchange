@@ -17,6 +17,8 @@ use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
+use Filament\Navigation\NavigationGroup;
+use Filament\Navigation\NavigationItem;
 
 class StorePanelProvider extends PanelProvider
 {
@@ -52,6 +54,30 @@ class StorePanelProvider extends PanelProvider
                 DisableBladeIconComponents::class,
                 DispatchServingFilamentEvent::class,
             ])
+            ->navigationGroups([
+                NavigationGroup::make()
+                ->label(fn(): string => __('Hawla Management'))
+                ->icon('heroicon-o-archive-box')
+                ->collapsed(),
+
+                NavigationGroup::make()
+                ->label(fn(): string => __('Exchange Management'))
+                ->icon('heroicon-o-currency-dollar')
+                ->collapsed(),
+
+
+                NavigationGroup::make()
+                ->label(fn(): string => __('Store Management'))
+                ->icon('heroicon-o-building-storefront')
+                ->collapsed(),
+
+                NavigationGroup::make()
+                ->label(fn(): string => __('Customer Management'))
+                ->icon('heroicon-o-user-group')
+                ->collapsed(),
+
+            ])
+
             ->authMiddleware([
                 Authenticate::class,
             ]);
