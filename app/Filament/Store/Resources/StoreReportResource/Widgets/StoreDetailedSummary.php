@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Resources\StoreReportResource\Widgets;
+namespace App\Filament\StoreDetailedSummary\Resources\StoreReportResource\Widgets;
 
 use Filament\Widgets\ChartWidget;
 
