@@ -1,34 +1,32 @@
 <?php
 
-namespace App\Filament\Resources;
+namespace App\Filament\Store\Resources;
 
-use App\Filament\Resources\HawlaResource\Pages;
-use App\Filament\Resources\HawlaResource\RelationManagers\ReceiverStoreRelationManager;
-use App\Filament\Resources\HawlaResource\RelationManagers\SenderStoreRelationManager;
+use App\Filament\Store\Resources\HawlaResource\Pages;
+use App\Filament\Store\Resources\HawlaResource\RelationManagers;
 use App\Models\Hawla;
-use Filament\Forms;
 use Filament\Forms\Components\Select;
+use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Support\Str;
 use Filament\Infolists\Infolist;
 use Filament\Infolists\Components\Section;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Infolists\Components\ImageEntry;
-use Illuminate\Support\Str;
 
 class HawlaResource extends Resource
 {
     protected static ?string $model = Hawla::class;
-    protected static ?string $navigationGroup = "Hawla Management";
-    protected static ?int $navigationSort = 1;
+
+    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-
                 Forms\Components\Section::make('Sender Details')
                     ->description('Information about the sender.')
                     ->schema([
@@ -50,18 +48,18 @@ class HawlaResource extends Resource
                                     ->required()
                                     ->maxLength(255),
                             ]),
-                        Select::make('sender_store_id')
-                            ->relationship('senderStore', 'name', function ($query) {
-                                if (!auth()->user()->hasRole('super_admin')) {
-                                    $query->where('id', auth()->user()?->store?->id);
-                                }
-                                return $query;
-                            })
-                            ->label('Sender Store')
-                            ->searchable()
-                            ->preload()
-                            ->live() // reactive field
-                            ->required(),
+                        // Select::make('sender_store_id')
+                        //     ->relationship('senderStore', 'name', function ($query) {
+                        //         if (!auth()->user()->hasRole('super_admin')) {
+                        //             $query->where('id', auth()->user()?->store?->id);
+                        //         }
+                        //         return $query;
+                        //     })
+                        //     ->label('Sender Store')
+                        //     ->searchable()
+                        //     ->preload()
+                        //     ->live() // reactive field
+                        //     ->required(),
                     ]),
 
 
@@ -459,8 +457,7 @@ class HawlaResource extends Resource
     public static function getRelations(): array
     {
         return [
-            SenderStoreRelationManager::class,
-            ReceiverStoreRelationManager::class,
+            //
         ];
     }
 
@@ -469,8 +466,8 @@ class HawlaResource extends Resource
         return [
             'index' => Pages\ListHawlas::route('/'),
             'create' => Pages\CreateHawla::route('/create'),
-            'view' => Pages\ViewHawla::route('/{record}'),
             'edit' => Pages\EditHawla::route('/{record}/edit'),
+            //'view' => Pages\ViewHawla::route('/{record}'),
         ];
     }
 
@@ -535,6 +532,4 @@ class HawlaResource extends Resource
             $set('receiving_amount', $finalGiven);
         }
     }
-
-
 }
