@@ -4,6 +4,8 @@ namespace App\Filament\Store\Resources;
 
 use App\Filament\Store\Resources\HawlaResource\Pages;
 use App\Filament\Store\Resources\HawlaResource\RelationManagers;
+use Illuminate\Database\Eloquent\Builder;
+use Filament\Facades\Filament;
 use App\Models\Hawla;
 use Filament\Forms\Components\Select;
 use Filament\Forms;
@@ -530,5 +532,21 @@ class HawlaResource extends Resource
             $finalGiven = $deductCommission ? max(0, $givenAmount - $commission) : $givenAmount;
             $set('receiving_amount', $finalGiven);
         }
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        $user = Filament::auth()->user();
+        $storeId = $user?->store?->id;
+
+        if (!$storeId) {
+            return parent::getEloquentQuery()->whereRaw('0 = 1');
+        }
+
+        return parent::getEloquentQuery()
+            ->where(function (Builder $query) use ($storeId) {
+                $query->where('sender_store_id', $storeId)
+                    ->orWhere('receiver_store_id', $storeId);
+            });
     }
 }

@@ -13,7 +13,13 @@ class EditBankAccount extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\DeleteAction::make(),
         ];
+    }
+
+    protected function mutateFormDataBeforeSave(array $data): array
+    {
+        $data['user_id'] = auth()->user()?->id;
+
+        return $data;
     }
 }

@@ -16,6 +16,8 @@ use Filament\Forms\Components\Section as FormSection;
 use Filament\Forms\Components\Select;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Illuminate\Database\Eloquent\Builder;
+use Filament\Facades\Filament;
 use Filament\Infolists\Infolist;
 use Filament\Infolists\Components\Section;
 use Filament\Infolists\Components\TextEntry;
@@ -33,56 +35,6 @@ class WalletResource extends Resource
     // protected static ?string $navigationIcon = 'heroicon-o-wallet';
     protected static ?string $navigationGroup = 'Finance Management';
 
-    /**
-     * Form Definition
-     */
-    public static function form(Form $form): Form
-    {
-        return $form
-            ->schema([
-                FormSection::make('Wallet Information')
-                    ->schema([
-
-                       Forms\Components\MorphToSelect::make('owner')
-                       ->columnSpanFull()
-                       ->hiddenOn(WalletsRelationManager::class)
-                        ->types([
-                            MorphToSelect\Type::make(User::class)
-                                ->titleAttribute('name'),
-                            MorphToSelect\Type::make(Store::class)
-                                ->titleAttribute('name'),
-                         ]),
-
-                        TextInput::make('balance')
-                            ->label('Balance')
-                            ->numeric()
-                            ->default(0)
-                            ->required(),
-
-                        Select::make('currency_id')
-                            ->label('Currency')
-                            ->relationship('currency', 'code') // Assuming `code` is the identifier in the `currencies` table
-                            ->searchable()
-                            ->preload()
-                            ->required(),
-
-                        Select::make('status')
-                            ->label('Status')
-                            ->options([
-                                'active' => 'Active',
-                                'suspended' => 'Suspended',
-                                'closed' => 'Closed',
-                            ])
-                            ->default('active')
-                            ->required(),
-                    ])
-                    ->columns(3),
-            ]);
-    }
-
-    /**
-     * Table Definition
-     */
     public static function table(Table $table): Table
     {
         return $table
@@ -138,14 +90,6 @@ class WalletResource extends Resource
                         'suspended' => 'Suspended',
                         'closed' => 'Closed',
                     ]),
-            ])
-            ->actions([
-                Tables\Actions\ViewAction::make(),
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
-            ])
-            ->bulkActions([
-                Tables\Actions\DeleteBulkAction::make(),
             ]);
     }
 
@@ -237,4 +181,22 @@ class WalletResource extends Resource
             'view' => Pages\ViewWallet::route('/{record}'),
         ];
     }
+
+        public static function getEloquentQuery(): Builder
+    {
+        $query = parent::getEloquentQuery();
+
+        // Get the authenticated user's store
+        $store = Filament::auth()->user()?->store;
+
+        if ($store) {
+            return $query
+                ->where('owner_type', \App\Models\Store::class)
+                ->where('owner_id', $store->id);
+        }
+
+        // If no store is found (e.g., user misconfigured), return no results
+        return $query->whereRaw('0 = 1');
+    }
+
 }

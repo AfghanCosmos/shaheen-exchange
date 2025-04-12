@@ -4,9 +4,10 @@ namespace App\Filament\Store\Resources;
 
 use App\Filament\Store\Resources\BankAccountResource\Pages;
 use App\Models\BankAccount;
-use App\Models\User;
-use App\Models\Currency;
-use Filament\Forms;
+use Filament\Infolists\Infolist;
+use Filament\Infolists\Components\Section as InfolistSection;
+use Filament\Infolists\Components\TextEntry;
+use Filament\Infolists\Components\BadgeEntry;
 use Filament\Forms\Form;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\TextInput;
@@ -36,11 +37,6 @@ class BankAccountResource extends Resource
             ->schema([
                 Section::make('Bank Account Details')
                     ->schema([
-                        Select::make('user_id')
-                            ->label('User')
-                            ->relationship('user', 'name')
-                            ->searchable()
-                            ->required(),
 
                         TextInput::make('bank_name')
                             ->label('Bank Name')
@@ -156,11 +152,88 @@ class BankAccountResource extends Resource
             ->actions([
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
-            ])
-            ->bulkActions([
-                Tables\Actions\DeleteBulkAction::make(),
             ]);
+    }
+
+    public static function infolist(Infolist $infolist): Infolist
+    {
+        return $infolist->schema([
+            InfolistSection::make('🏦 Bank Account Overview')
+                ->description('Details of the selected bank account.')
+                ->icon('heroicon-o-banknotes')
+                ->columns(2)
+                ->schema([
+                    TextEntry::make('bank_name')
+                        ->label('Bank Name')
+                        ->icon('heroicon-o-building-library')
+                        ->weight('bold'),
+
+                    TextEntry::make('account_holder_name')
+                        ->label('Account Holder Name')
+                        ->icon('heroicon-o-user-circle'),
+
+                    TextEntry::make('account_number')
+                        ->label('Account Number')
+                        ->copyable()
+                        ->icon('heroicon-o-identification'),
+
+                    TextEntry::make('iban')
+                        ->label('IBAN')
+                        ->copyable()
+                        ->icon('heroicon-o-credit-card')
+                        ->visible(fn ($state) => filled($state)),
+
+                    TextEntry::make('swift_code')
+                        ->label('SWIFT Code')
+                        ->icon('heroicon-o-finger-print')
+                        ->visible(fn ($state) => filled($state)),
+
+                    TextEntry::make('currency.code')
+                        ->label('Currency')
+                        ->badge()
+                        ->color('gray'),
+                ]),
+
+            InfolistSection::make('⚙️ Account Settings')
+                ->columns(2)
+                ->schema([
+                    TextEntry::make('status')
+                        ->label('Status')
+                        ->icon(fn ($state) => match ($state) {
+                            'active' => 'heroicon-o-check-circle',
+                            'inactive' => 'heroicon-o-pause-circle',
+                            'closed' => 'heroicon-o-x-circle',
+                        })
+                        ->badge()
+                        ->color(fn ($state) => match ($state) {
+                            'active' => 'success',
+                            'inactive' => 'warning',
+                            'closed' => 'danger',
+                        }),
+
+                    TextEntry::make('is_primary')
+                        ->label('Primary Account')
+                        ->icon(fn ($state) => $state ? 'heroicon-o-star' : 'heroicon-o-star')
+                        ->badge()
+                        ->color(fn ($state) => $state ? 'primary' : 'gray')
+                        ->formatStateUsing(fn ($state) => $state ? 'Yes' : 'No'),
+                ]),
+
+            InfolistSection::make('🕒 Metadata')
+                ->columns(2)
+                ->collapsed()
+                ->schema([
+                    TextEntry::make('created_at')
+                        ->label('Created At')
+                        ->icon('heroicon-o-calendar-days')
+                        ->dateTime(),
+
+                    TextEntry::make('updated_at')
+                        ->label('Last Updated')
+                        ->icon('heroicon-o-clock')
+                        ->dateTime(),
+                ]),
+        ]);
     }
 
     /**
