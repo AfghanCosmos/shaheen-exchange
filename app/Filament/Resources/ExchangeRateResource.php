@@ -21,19 +21,19 @@ class ExchangeRateResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Select::make('store_id')
-                    ->label('Store')
-                    ->relationship('store', 'name')
-                    ->preload()
-                    ->native(false)
-                    ->required(),
+                // Forms\Components\Select::make('store_id')
+                //     ->label('Store')
+                //     ->relationship('store', 'name')
+                //     ->preload()
+                //     ->native(false)
+                //     ->required(),
 
-                Forms\Components\Select::make('user_id')
-                    ->label('User')
-                    ->relationship('user', 'name')
-                    ->preload()
-                    ->native(false)
-                    ->required(),
+                // Forms\Components\Select::make('user_id')
+                //     ->label('User')
+                //     ->relationship('user', 'name')
+                //     ->preload()
+                //     ->native(false)
+                //     ->required(),
                 Forms\Components\Select::make('from_currency_id')
                     ->label('From Currency')
                     ->relationship('fromCurrency', 'name')
