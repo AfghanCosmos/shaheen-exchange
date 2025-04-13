@@ -85,9 +85,7 @@ class StoreWalletResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-        ->query(function ($query) {
-            $query->where('owner_type', \App\Models\Store::class);
-        })
+        ->query(\App\Models\Wallet::query()->where('owner_type', \App\Models\Store::class))
         ->defaultSort('updated_at', 'desc')
             ->columns([
                 TextColumn::make('uuid')

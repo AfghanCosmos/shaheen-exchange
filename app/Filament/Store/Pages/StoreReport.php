@@ -2,8 +2,7 @@
 
 namespace App\Filament\Store\Pages;
 
-use App\Filament\Resources\StoreReportResource\Widgets\StoreDetailedSummary;
-use App\Filament\Resources\StoreReportResource\Widgets\StoreOverview;
+use App\Filament\Store\Resources\StoreReportResource\Widgets\StoreOverview;
 use Filament\Pages\Page;
 
 class StoreReport extends Page
@@ -17,7 +16,6 @@ class StoreReport extends Page
     {
         return [
             StoreOverview::class,
-            StoreDetailedSummary::class,
 
         ];
     }
