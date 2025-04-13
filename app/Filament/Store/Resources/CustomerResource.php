@@ -91,8 +91,6 @@ class CustomerResource extends Resource
                             ->unique('users', 'phone_number', ignoreRecord: true),
 
 
-
-
                         Forms\Components\Select::make('status')
                             ->label('Status')
                             ->options([
@@ -112,17 +110,12 @@ class CustomerResource extends Resource
                             ->directory('public/users')
                             ->nullable(),
 
-                        Forms\Components\Toggle::make('is_active')
-                            ->label('Account Active')
-                            ->columnSpanFull()
-                            ->default(true),
-
 
                             Forms\Components\Fieldset::make('User KYC')
                             ->relationship('kyc')
-                                ->schema([
-                         Section::make('Information')
-                                    ->schema([
+                ->schema([
+                    Section::make('Information')
+                        ->schema([
 
                         TextInput::make('govt_id_type')
                             ->label('Government ID Type')
@@ -147,7 +140,7 @@ class CustomerResource extends Resource
                             ->after('issue_date'),
                     ])->columns(4),
 
-                Section::make('Document Details')
+                    Section::make('Document Details')
                     ->schema([
                         Forms\Components\FileUpload::make('govt_id_file')
                             ->label('Government ID File')
@@ -162,7 +155,7 @@ class CustomerResource extends Resource
                        // Ensures expiry date is after issue date
                     ])->columns(1),
 
-                Section::make('Status & Responses')
+                    Section::make('Status & Responses')
                     ->schema([
                         Select::make('status')
                             ->label('Status')
@@ -185,19 +178,24 @@ class CustomerResource extends Resource
                             ->label('Third-Party Response')
                             ->placeholder('Details from third-party verification (if applicable)')
                             ->columnSpanFull(),
+                        Forms\Components\Toggle::make('is_active')
+                            ->label('Account Active')
+                            ->columnSpanFull()
+                            ->inline(false)
+                            ->default(true),
                     ]),
 
                                 ]),
-                    ])
-                    ->columns(3),
+                    ])->columns(4),
 
 
-    Repeater::make('banks')
-    ->relationship('banks')
-    ->columnSpanFull()
-        ->schema([
-        Section::make('Bank Account Details')
+
+                    Repeater::make('banks')
+                    ->relationship('banks')
+                    ->columnSpanFull()
                     ->schema([
+                        Section::make('Bank Account Details')
+                                    ->schema([
 
 
                         TextInput::make('bank_name')
@@ -250,12 +248,11 @@ class CustomerResource extends Resource
                             ->inline(false)
                             ->default(false),
 
-                    ])
-                    ->columns(3),
+                    ])->columns(3),
 
-    ]),
+            ]),
 
-            ]);
+        ]);
     }
 
     public static function table(Table $table): Table

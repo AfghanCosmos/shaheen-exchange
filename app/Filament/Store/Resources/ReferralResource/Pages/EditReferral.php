@@ -19,4 +19,12 @@ class EditReferral extends EditRecord
             Actions\RestoreAction::make(),
         ];
     }
+
+    protected function mutateFormDataBeforeSave(array $data): array
+    {
+        // Keep original referrer_id no matter what is submitted
+        $data['referrer_id'] = $this->record->referrer_id;
+
+        return $data;
+    }
 }

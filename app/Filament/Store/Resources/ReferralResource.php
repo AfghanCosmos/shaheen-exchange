@@ -23,12 +23,12 @@ class ReferralResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Select::make('referrer_id')
-                    ->relationship('referrer', 'name')
-                    ->searchable()
-                    ->required(),
                 Forms\Components\Select::make('referred_user_id')
-                    ->relationship('referredUser', 'name')
+                    ->relationship(
+                        name: 'referredUser',
+                        titleAttribute: 'name',
+                        modifyQueryUsing: fn (Builder $query) => $query->where('id', '!=', auth()->id())
+                    )
                     ->searchable()
                     ->required(),
                 Forms\Components\TextInput::make('reward_amount')

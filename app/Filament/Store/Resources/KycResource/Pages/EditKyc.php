@@ -16,4 +16,12 @@ class EditKyc extends EditRecord
             Actions\DeleteAction::make(),
         ];
     }
+
+    protected function mutateFormDataBeforeSave(array $data): array
+    {
+        // Prevent user_id tampering
+        $data['user_id'] = $this->record->user_id;
+
+        return $data;
+    }
 }

@@ -19,6 +19,8 @@ use Filament\Tables\Table;
 use Filament\Tables\Columns\BadgeColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\IconColumn;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Auth;
 use Filament\Tables\Filters\SelectFilter;
 use Illuminate\Support\Facades\Storage;
 
@@ -37,12 +39,6 @@ class KycResource extends Resource
             ->schema([
                 Section::make('User Information')
                     ->schema([
-                        Select::make('user_id')
-                            ->label('User')
-                            ->relationship('user', 'name')
-                            ->required()
-                            ->searchable()
-                            ->preload(),
 
                         TextInput::make('govt_id_type')
                             ->label('Government ID Type')
@@ -58,18 +54,6 @@ class KycResource extends Resource
 
                 Section::make('Document Details')
                     ->schema([
-                        Forms\Components\FileUpload::make('govt_id_file')
-                            ->label('Government ID File')
-                            ->directory('kyc_documents')
-                            ->preserveFilenames()
-                            ->required()
-                            ->imageEditor()
-                            ->enableDownload()
-                            ->maxSize(2048)
-                            ->acceptedFileTypes(['image/jpeg', 'image/png', 'application/pdf'])
-                            ->visibility('public'), // Ensure uploaded files are accessible
-
-
 
                         DatePicker::make('issue_date')
                             ->label('Issue Date')
@@ -78,6 +62,18 @@ class KycResource extends Resource
                         DatePicker::make('expire_date')
                             ->label('Expiry Date')
                             ->after('issue_date'), // Ensures expiry date is after issue date
+
+                        Forms\Components\FileUpload::make('govt_id_file')
+                            ->label('Government ID File')
+                            ->directory('kyc_documents')
+                            ->preserveFilenames()
+                            ->required()
+                            ->imageEditor()
+                            ->columnspanfull()
+                            ->enableDownload()
+                            ->maxSize(2048)
+                            ->acceptedFileTypes(['image/jpeg', 'image/png', 'application/pdf'])
+                            ->visibility('public'), // Ensure uploaded files are accessible
                     ])->columns(2),
 
                 Section::make('Status & Responses')
@@ -130,12 +126,6 @@ class KycResource extends Resource
                     ->label('ID Number')
                     ->limit(20)
                     ->searchable(),
-
-                IconColumn::make('govt_id_file')
-                    ->label('ID Document')
-                    ->icon('heroicon-o-document-text')
-                    ->url(fn ($record) => Storage::url($record->govt_id_file), true)
-                    ->tooltip('Download Document'),
 
                 TextColumn::make('issue_date')
                     ->label('Issue Date')
@@ -204,5 +194,11 @@ class KycResource extends Resource
             'create' => Pages\CreateKyc::route('/create'),
             'edit' => Pages\EditKyc::route('/{record}/edit'),
         ];
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->where('user_id', Auth::id());
     }
 }

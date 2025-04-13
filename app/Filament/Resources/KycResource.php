@@ -58,18 +58,6 @@ class KycResource extends Resource
 
                 Section::make('Document Details')
                     ->schema([
-                        Forms\Components\FileUpload::make('govt_id_file')
-                            ->label('Government ID File')
-                            ->directory('kyc_documents')
-                            ->preserveFilenames()
-                            ->required()
-                            ->imageEditor()
-                            ->enableDownload()
-                            ->maxSize(2048)
-                            ->acceptedFileTypes(['image/jpeg', 'image/png', 'application/pdf'])
-                            ->visibility('public'), // Ensure uploaded files are accessible
-
-
 
                         DatePicker::make('issue_date')
                             ->label('Issue Date')
@@ -78,6 +66,18 @@ class KycResource extends Resource
                         DatePicker::make('expire_date')
                             ->label('Expiry Date')
                             ->after('issue_date'), // Ensures expiry date is after issue date
+
+                        Forms\Components\FileUpload::make('govt_id_file')
+                            ->label('Government ID File')
+                            ->directory('kyc_documents')
+                            ->preserveFilenames()
+                            ->required()
+                            ->imageEditor()
+                            ->enableDownload()
+                            ->maxSize(2048)
+                            ->columnSpanFull()
+                            ->acceptedFileTypes(['image/jpeg', 'image/png', 'application/pdf'])
+                            ->visibility('public'), // Ensure uploaded files are accessible
                     ])->columns(2),
 
                 Section::make('Status & Responses')
