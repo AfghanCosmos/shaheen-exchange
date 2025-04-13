@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\StoreDetailedSummary\Resources\StoreReportResource\Widgets;
+namespace App\Filament\Store\Resources\StoreReportResource\Widgets;
 
 use App\Models\Store;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
@@ -13,7 +13,7 @@ class StoreOverview extends BaseWidget
         $stats = [];
 
         // Get all active stores (you can filter further if needed)
-        $stores = Store::with(['hawlasGiven.givenCurrency', 'hawlasReceived.receivingCurrency'])->get();
+        $stores = Store::where('user_id', auth()->user()->id)->with(['hawlasGiven.givenCurrency', 'hawlasReceived.receivingCurrency'])->get();
 
         foreach ($stores as $store) {
             $summary = $store->hawlaOverallSummary();

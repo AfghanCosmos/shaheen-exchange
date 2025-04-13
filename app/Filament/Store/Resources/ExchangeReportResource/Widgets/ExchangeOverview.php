@@ -15,30 +15,30 @@ class ExchangeOverview extends BaseWidget
 return [
 
     /* 1. Basic Counts */
-    Stat::make('Total Exchanges', CurrencyExchange::count())
+    Stat::make('Total Exchanges', CurrencyExchange::where('store_id', auth()->user()?->store?->id)->count())
         ->description('All time exchanges'),
 
-    Stat::make("Today's Exchanges", CurrencyExchange::whereDate('date', today())->count())
+    Stat::make("Today's Exchanges", CurrencyExchange::where('store_id', auth()->user()?->store?->id)->whereDate('date', today())->count())
         ->description('Exchanges today')
 
         ->color('success'),
 
-    Stat::make('Monthly Exchanges', CurrencyExchange::whereMonth('date', now()->month)->count())
+    Stat::make('Monthly Exchanges', CurrencyExchange::where('store_id', auth()->user()?->store?->id)->whereMonth('date', now()->month)->count())
         ->description('Current month exchanges')
        ,
 
-    Stat::make('Yearly Exchanges', CurrencyExchange::whereYear('date', now()->year)->count())
+    Stat::make('Yearly Exchanges', CurrencyExchange::where('store_id', auth()->user()?->store?->id)->whereYear('date', now()->year)->count())
         ->description('Current year exchanges')
        ,
 
     Stat::make('Avg Daily Exchanges', function() {
-        $days = max(1, Carbon::parse(CurrencyExchange::min('date'))->diffInDays(now()));
-        return round(CurrencyExchange::count() / $days, 1);
+        $days = max(1, Carbon::parse(CurrencyExchange::where('store_id', auth()->user()?->store?->id)->min('date'))->diffInDays(now()));
+        return round(CurrencyExchange::where('store_id', auth()->user()?->store?->id)->count() / $days, 1);
     })->description('Average exchanges per day'),
 
     /* 2. By Currency */
     Stat::make('Top Source Currency', function() {
-        $top = CurrencyExchange::groupBy('from_currency_id')
+        $top = CurrencyExchange::where('store_id', auth()->user()?->store?->id)->groupBy('from_currency_id')
             ->selectRaw('count(*) as count, from_currency_id')
             ->orderByDesc('count')
             ->first();
@@ -46,7 +46,7 @@ return [
     })->description('Most exchanged from currency'),
 
     Stat::make('Top Target Currency', function() {
-        $top = CurrencyExchange::groupBy('to_currency_id')
+        $top = CurrencyExchange::where('store_id', auth()->user()?->store?->id)->groupBy('to_currency_id')
             ->selectRaw('count(*) as count, to_currency_id')
             ->orderByDesc('count')
             ->first();
@@ -54,7 +54,7 @@ return [
     })->description('Most exchanged to currency'),
 
     Stat::make('Rarest Source Currency', function() {
-        $top = CurrencyExchange::groupBy('from_currency_id')
+        $top = CurrencyExchange::where('store_id', auth()->user()?->store?->id)->groupBy('from_currency_id')
             ->selectRaw('count(*) as count, from_currency_id')
             ->orderBy('count')
             ->first();
@@ -62,24 +62,24 @@ return [
     })->description('Least exchanged from currency'),
 
     Stat::make('Rarest Target Currency', function() {
-        $top = CurrencyExchange::groupBy('to_currency_id')
+        $top = CurrencyExchange::where('store_id', auth()->user()?->store?->id)->groupBy('to_currency_id')
             ->selectRaw('count(*) as count, to_currency_id')
             ->orderBy('count')
             ->first();
         return "{$top->toCurrency->code} ({$top->count}x)";
     })->description('Least exchanged to currency'),
 
-    Stat::make('Unique Source Currencies', CurrencyExchange::distinct('from_currency_id')->count())
+    Stat::make('Unique Source Currencies', CurrencyExchange::where('store_id', auth()->user()?->store?->id)->distinct('from_currency_id')->count())
         ->description('Different currencies exchanged from'),
 
-    Stat::make('Unique Target Currencies', CurrencyExchange::distinct('to_currency_id')->count())
+    Stat::make('Unique Target Currencies', CurrencyExchange::where('store_id', auth()->user()?->store?->id)->distinct('to_currency_id')->count())
         ->description('Different currencies exchanged to'),
 
-    Stat::make('Unique Currency Pairs', CurrencyExchange::distinct(['from_currency_id', 'to_currency_id'])->count())
+    Stat::make('Unique Currency Pairs', CurrencyExchange::where('store_id', auth()->user()?->store?->id)->distinct(['from_currency_id', 'to_currency_id'])->count())
         ->description('Different exchange pairs'),
 
     Stat::make('Highest Outgoing Volume', function() {
-        $top = CurrencyExchange::groupBy('from_currency_id')
+        $top = CurrencyExchange::where('store_id', auth()->user()?->store?->id)->groupBy('from_currency_id')
             ->selectRaw('sum(amount) as total, from_currency_id')
             ->orderByDesc('total')
             ->first();
@@ -87,7 +87,7 @@ return [
     })->description('Currency with most amount exchanged from'),
 
     Stat::make('Highest Incoming Volume', function() {
-        $top = CurrencyExchange::groupBy('to_currency_id')
+        $top = CurrencyExchange::where('store_id', auth()->user()?->store?->id)->groupBy('to_currency_id')
             ->selectRaw('sum(received_amount) as total, to_currency_id')
             ->orderByDesc('total')
             ->first();
@@ -96,38 +96,38 @@ return [
 
     /* 3. By Amounts */
     Stat::make('Total Amount Exchanged', function() {
-        return number_format(CurrencyExchange::sum('amount'), 2);
+        return number_format(CurrencyExchange::where('store_id', auth()->user()?->store?->id)->sum('amount'), 2);
     })->description('All time total'),
 
     Stat::make('Average Exchange Amount', function() {
-        return number_format(CurrencyExchange::avg('amount'), 2);
+        return number_format(CurrencyExchange::where('store_id', auth()->user()?->store?->id)->avg('amount'), 2);
     })->description('Mean exchange size'),
 
     Stat::make('Largest Single Exchange', function() {
-        $exchange = CurrencyExchange::orderByDesc('amount')->first();
+        $exchange = CurrencyExchange::where('store_id', auth()->user()?->store?->id)->orderByDesc('amount')->first();
         return $exchange ? number_format($exchange->amount, 2)." (ID: {$exchange->id})" : 'N/A';
     })->description('Biggest single transaction'),
 
     Stat::make('Smallest Single Exchange', function() {
-        $exchange = CurrencyExchange::orderBy('amount')->first();
+        $exchange = CurrencyExchange::where('store_id', auth()->user()?->store?->id)->orderBy('amount')->first();
         return $exchange ? number_format($exchange->amount, 2)." (ID: {$exchange->id})" : 'N/A';
     })->description('Smallest single transaction'),
 
     Stat::make("Today's Volume", function() {
-        return number_format(CurrencyExchange::whereDate('date', today())->sum('amount'), 2);
+        return number_format(CurrencyExchange::where('store_id', auth()->user()?->store?->id)->whereDate('date', today())->sum('amount'), 2);
     })->description('Amount exchanged today'),
 
     Stat::make('Monthly Volume', function() {
-        return number_format(CurrencyExchange::whereMonth('date', now()->month)->sum('amount'), 2);
+        return number_format(CurrencyExchange::where('store_id', auth()->user()?->store?->id)->whereMonth('date', now()->month)->sum('amount'), 2);
     })->description('Current month volume'),
 
     Stat::make('Average Exchange Rate', function() {
-        return number_format(CurrencyExchange::avg('rate'), 4);
+        return number_format(CurrencyExchange::where('store_id', auth()->user()?->store?->id)->avg('rate'), 4);
     })->description('Mean rate across all exchanges'),
 
     /* 4. By Pairs */
     Stat::make('Most Common Pair', function() {
-        $pair = CurrencyExchange::groupBy(['from_currency_id', 'to_currency_id'])
+        $pair = CurrencyExchange::where('store_id', auth()->user()?->store?->id)->groupBy(['from_currency_id', 'to_currency_id'])
             ->selectRaw('count(*) as count, from_currency_id, to_currency_id')
             ->orderByDesc('count')
             ->first();
@@ -135,7 +135,7 @@ return [
     })->description('Most frequent currency pair'),
 
     Stat::make('Highest Volume Pair', function() {
-        $pair = CurrencyExchange::groupBy(['from_currency_id', 'to_currency_id'])
+        $pair = CurrencyExchange::where('store_id', auth()->user()?->store?->id)->groupBy(['from_currency_id', 'to_currency_id'])
             ->selectRaw('sum(amount) as total, from_currency_id, to_currency_id')
             ->orderByDesc('total')
             ->first();
@@ -143,7 +143,7 @@ return [
     })->description('Pair with most amount exchanged'),
 
     Stat::make('Largest Average Pair', function() {
-        $pair = CurrencyExchange::groupBy(['from_currency_id', 'to_currency_id'])
+        $pair = CurrencyExchange::where('store_id', auth()->user()?->store?->id)->groupBy(['from_currency_id', 'to_currency_id'])
             ->selectRaw('avg(amount) as avg, from_currency_id, to_currency_id')
             ->orderByDesc('avg')
             ->first();
@@ -151,7 +151,7 @@ return [
     })->description('Pair with largest average exchange'),
 
     Stat::make('Most Profitable Pair', function() {
-        $pair = CurrencyExchange::groupBy(['from_currency_id', 'to_currency_id'])
+        $pair = CurrencyExchange::where('store_id', auth()->user()?->store?->id)->groupBy(['from_currency_id', 'to_currency_id'])
             ->selectRaw('sum(commission) as total, from_currency_id, to_currency_id')
             ->orderByDesc('total')
             ->first();
@@ -160,7 +160,7 @@ return [
 
     /* 5. Time-Based */
     Stat::make('Busiest Day', function() {
-        $day = CurrencyExchange::groupBy('date')
+        $day = CurrencyExchange::where('store_id', auth()->user()?->store?->id)->groupBy('date')
             ->selectRaw('count(*) as count, date')
             ->orderByDesc('count')
             ->first();
@@ -168,8 +168,8 @@ return [
     })->description('Day with most exchanges'),
 
     Stat::make('Monthly Growth', function() {
-        $current = CurrencyExchange::whereMonth('date', now()->month)->count();
-        $previous = CurrencyExchange::whereMonth('date', now()->subMonth()->month)->count();
+        $current = CurrencyExchange::where('store_id', auth()->user()?->store?->id)->whereMonth('date', now()->month)->count();
+        $previous = CurrencyExchange::where('store_id', auth()->user()?->store?->id)->whereMonth('date', now()->subMonth()->month)->count();
         $change = $previous ? round(($current - $previous) / $previous * 100) : 0;
         return "{$change}%";
     })->description('Month-over-month change')
