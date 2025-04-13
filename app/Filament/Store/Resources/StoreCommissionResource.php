@@ -2,6 +2,7 @@
 
 namespace App\Filament\Store\Resources;
 
+use App\Filament\Resources\CurrencyResource;
 use App\Filament\Store\Resources\StoreCommissionResource\Pages;
 use App\Models\StoreCommission;
 use Filament\Forms;
@@ -11,6 +12,7 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use App\Filament\Resources\StoreResource\RelationManagers\StoreCommissionsRelationManager;
+use Illuminate\Support\Facades\Auth;
 
 class StoreCommissionResource extends Resource
 {
@@ -24,17 +26,6 @@ class StoreCommissionResource extends Resource
             ->schema([
                 Forms\Components\Section::make('Store Commission Details')
                     ->schema([
-                        Forms\Components\Select::make('store_id')
-                            ->label('Store')
-                            ->relationship('store', 'name')
-                            ->preload()
-                            ->searchable()
-                            ->native(false)
-                       ->hiddenOn(StoreCommissionsRelationManager::class)
-                            ->columnSpanFull()
-                            ->required()
-                            ->createOptionForm(fn(Form $form) => StoreResource::form($form))
-                            ->placeholder('Select a store...'),
 
                         Forms\Components\Select::make('commission_type_id')
                             ->label('Commission Type')
@@ -43,7 +34,7 @@ class StoreCommissionResource extends Resource
                             ->searchable()
                             ->native(false)
                             ->required()
-                            ->createOptionForm(fn(Form $form) => CommissionTypeResource::form($form))
+                            ->createOptionForm(fn(Form $form) => StoreCommissionResource::form($form))
                             ->placeholder('Select a type...'),
 
                         Forms\Components\Select::make('currency_id')
@@ -77,50 +68,62 @@ class StoreCommissionResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->columns([
-                Tables\Columns\TextColumn::make('store.name')
-                    ->label('Store')
-                    ->searchable()
-                    ->sortable()
-                    ->tooltip(fn ($record) => $record->store?->name),
+        ->columns([
+            /** 🏬 Store Name with Tooltip */
+            Tables\Columns\TextColumn::make('store.name')
+                ->label('🏬 Store')
+                ->searchable()
+                ->sortable()
+                ->tooltip(fn ($record) => $record->store?->name)
+                ->badge()
+                ->color('gray'),
 
-                Tables\Columns\BadgeColumn::make('commissionType.name')
-                    ->label('Type')
-                    ->searchable()
-                    ->sortable()
-                    ->colors([
-                        'info' => 'Percentage',
-                        'success' => 'Fixed',
-                    ]),
+            /** 🏷️ Commission Type */
+            Tables\Columns\BadgeColumn::make('commissionType.name')
+                ->label('📊 Type')
+                ->searchable()
+                ->sortable()
+                ->colors([
+                    'info' => 'Percentage',
+                    'success' => 'Fixed',
+                ])
+                ->formatStateUsing(fn ($state) => ucfirst($state)),
 
-                Tables\Columns\BadgeColumn::make('currency.code')
-                    ->label('Currency')
-                    ->searchable()
-                    ->sortable()
-                    ->colors([
-                        'primary' => 'USD',
-                        'warning' => 'EUR',
-                        'danger' => 'AFN',
-                    ]),
+            /** 💱 Currency Code */
+            Tables\Columns\BadgeColumn::make('currency.code')
+                ->label('💱 Currency')
+                ->searchable()
+                ->sortable()
+                ->colors([
+                    'primary' => 'USD',
+                    'warning' => 'EUR',
+                    'danger' => 'AFN',
+                    'gray' => null, // fallback
+                ]),
 
+            /** ✅ Is Fixed? */
+            Tables\Columns\BooleanColumn::make('is_fix')
+                ->label('🔒 Is Fixed')
+                ->trueIcon('heroicon-o-check-circle')
+                ->falseIcon('heroicon-o-x-circle')
+                ->alignCenter(),
 
-                Tables\Columns\BooleanColumn::make('is_fix')
-                    ->label('Is Fix')
-                    ->trueIcon('heroicon-s-check-circle')
-                    ->falseIcon('heroicon-s-x-circle'),
+            /** 💰 Commission Value */
+            Tables\Columns\TextColumn::make('commission')
+                ->label('💰 Commission')
+                ->sortable()
+                ->formatStateUsing(fn ($state) => number_format($state, 2))
+                ->suffix(fn ($record) => $record->commissionType?->name === 'Percentage' ? '%' : null)
+                ->color('success'),
 
-                Tables\Columns\TextColumn::make('commission')
-                    ->label('Commission')
-                    ->sortable()
-                    ->formatStateUsing(fn ($state) => number_format($state, 2)
-                ),
+            /** 🕒 Created At */
+            Tables\Columns\TextColumn::make('created_at')
+                ->label('📅 Created At')
+                ->dateTime('d M Y, H:i')
+                ->sortable()
+                ->toggleable(isToggledHiddenByDefault: true),
+        ])
 
-                Tables\Columns\TextColumn::make('created_at')
-                    ->label('Created At')
-                    ->sortable()
-                    ->dateTime('d M Y, H:i')
-                    ->toggleable(isToggledHiddenByDefault: true),
-            ])
             ->defaultSort('created_at', 'desc')
             ->actions([
                 Tables\Actions\EditAction::make(),
@@ -135,6 +138,14 @@ class StoreCommissionResource extends Resource
     public static function getRelations(): array
     {
         return [];
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->whereHas('store', function (Builder $query) {
+                $query->where('user_id', Auth::id());
+            });
     }
 
     public static function getPages(): array

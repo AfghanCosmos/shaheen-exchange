@@ -91,19 +91,42 @@ class StoreCommissionRangeResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->columns([
+        ->columns([
+            /** 🏬 Store Name */
             Tables\Columns\TextColumn::make('store.name')
-                ->label('Store'),
-            Tables\Columns\TextColumn::make('currency.name')
-                ->label('Currency'),
-            Tables\Columns\TextColumn::make('from')
-                ->label('From Value'),
-            Tables\Columns\TextColumn::make('to')
-                ->label('To Value'),
-                Tables\Columns\TextColumn::make('commission')
+                ->label('🏬 Store')
+                ->sortable()
+                ->searchable()
+                ->badge()
+                ->color('gray'),
 
-                    ->label('Commission'),
-            ])
+            /** 💱 Currency */
+            Tables\Columns\TextColumn::make('currency.name')
+                ->label('💱 Currency')
+                ->sortable()
+                ->searchable()
+                ->badge()
+                ->color('info'),
+
+            /** 🔢 From Value */
+            Tables\Columns\TextColumn::make('from')
+                ->label('🔽 From')
+                ->sortable()
+                ->formatStateUsing(fn ($state) => number_format($state, 2)),
+
+            /** 🔼 To Value */
+            Tables\Columns\TextColumn::make('to')
+                ->label('🔼 To')
+                ->sortable()
+                ->formatStateUsing(fn ($state) => number_format($state, 2)),
+
+            /** 💰 Commission */
+            Tables\Columns\TextColumn::make('commission')
+                ->label('💰 Commission')
+                ->sortable()
+                ->formatStateUsing(fn ($state) => number_format($state, 2) . ' %')
+                ->color(fn ($state) => $state >= 10 ? 'danger' : ($state >= 5 ? 'warning' : 'success')),
+        ])
             ->filters([
                 Tables\Filters\Filter::make('commission')
                     ->query(fn (Builder $query): Builder => $query)

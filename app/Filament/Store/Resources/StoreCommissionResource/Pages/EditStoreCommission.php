@@ -16,4 +16,12 @@ class EditStoreCommission extends EditRecord
             Actions\DeleteAction::make(),
         ];
     }
+
+    protected function mutateFormDataBeforeSave(array $data): array
+    {
+        // Prevent store_id from being changed
+        $data['store_id'] = $this->record->store_id;
+
+        return $data;
+    }
 }

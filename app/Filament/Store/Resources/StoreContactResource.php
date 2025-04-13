@@ -6,6 +6,7 @@ use App\Filament\Store\Resources\StoreContactResource\Pages;
 use App\Models\StoreContact;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Illuminate\Database\Eloquent\Builder;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Section;
@@ -15,6 +16,7 @@ use Filament\Tables\Table;
 use Filament\Tables\Columns\BadgeColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
+use Illuminate\Support\Facades\Auth;
 
 class StoreContactResource extends Resource
 {
@@ -32,13 +34,6 @@ class StoreContactResource extends Resource
             ->schema([
                 Section::make('Contact Information')
                     ->schema([
-                        Select::make('store_id')
-                            ->label('Store')
-                            ->relationship('store', 'name')
-                            ->required()
-                            ->searchable()
-                            ->preload(),
-
                         Select::make('type')
                             ->label('Contact Type')
                             ->options([
@@ -73,41 +68,60 @@ class StoreContactResource extends Resource
     {
         return $table
         ->defaultSort('created_at', 'desc')
-            ->columns([
-                TextColumn::make('store.name')
-                    ->label('Store')
-                    ->sortable()
-                    ->searchable(),
+        ->columns([
+            /** 🏬 Store */
+            TextColumn::make('store.name')
+                ->label('🏬 Store')
+                ->sortable()
+                ->searchable()
+                ->badge()
+                ->color('gray'),
 
-                BadgeColumn::make('type')
-                    ->colors([
-                        'primary' => 'phone',
-                        'success' => 'email',
-                        'info' => 'whatsapp',
-                        'warning' => 'telegram',
-                        'danger' => 'fax',
-                        'gray' => 'other',
-                    ])
-                    ->label('Contact Type')
-                    ->sortable(),
+            /** 📡 Contact Type */
+            BadgeColumn::make('type')
+                ->label('📲 Contact Type')
+                ->sortable()
+                ->colors([
+                    'primary' => 'phone',
+                    'success' => 'email',
+                    'info' => 'whatsapp',
+                    'warning' => 'telegram',
+                    'danger' => 'fax',
+                    'gray' => 'other',
+                ])
+                ->formatStateUsing(fn ($state) => ucfirst($state)),
 
-                TextColumn::make('contact_value')
-                    ->label('Contact Details')
-                    ->copyable()
-                    ->sortable()
-                    ->searchable(),
+            /** 📞 Contact Details */
+            TextColumn::make('contact_value')
+                ->label('📞 Contact Info')
+                ->copyable()
+                ->copyMessage('Copied!')
+                ->copyMessageDuration(1500)
+                ->searchable()
+                ->sortable()
+                ->icon(fn ($record) => match ($record->type) {
+                    'phone' => 'heroicon-o-phone',
+                    'email' => 'heroicon-o-envelope',
+                    'whatsapp' => 'heroicon-o-chat-bubble-left-right',
+                    'telegram' => 'heroicon-o-paper-airplane',
+                    'fax' => 'heroicon-o-printer',
+                    default => 'heroicon-o-question-mark-circle',
+                }),
 
-                TextColumn::make('created_at')
-                    ->label('Created At')
-                    ->dateTime('F j, Y')
-                    ->sortable(),
+            /** 🕒 Created Date */
+            TextColumn::make('created_at')
+                ->label('🕒 Created')
+                ->dateTime('M d, Y')
+                ->sortable(),
 
-                TextColumn::make('updated_at')
-                    ->label('Updated At')
-                    ->dateTime('F j, Y')
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-            ])
+            /** 🔄 Updated Date */
+            TextColumn::make('updated_at')
+                ->label('🔄 Updated')
+                ->dateTime('M d, Y')
+                ->sortable()
+                ->toggleable(isToggledHiddenByDefault: true),
+        ])
+
             ->filters([
                 SelectFilter::make('type')
                     ->label('Contact Type')
@@ -148,5 +162,13 @@ class StoreContactResource extends Resource
             'create' => Pages\CreateStoreContact::route('/create'),
             'edit' => Pages\EditStoreContact::route('/{record}/edit'),
         ];
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->whereHas('store', function (Builder $query) {
+                $query->where('user_id', Auth::id());
+            });
     }
 }

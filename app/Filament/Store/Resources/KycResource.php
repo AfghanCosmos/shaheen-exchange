@@ -110,53 +110,66 @@ class KycResource extends Resource
     {
         return $table
         ->defaultSort('created_at', 'desc')
-            ->columns([
-                TextColumn::make('user.name')
-                    ->label('User')
-                    ->sortable()
-                    ->searchable()
-                    ->limit(20),
+        ->columns([
+            /** 👤 User */
+            Tables\Columns\TextColumn::make('user.name')
+                ->label('👤 User')
+                ->sortable()
+                ->searchable()
+                ->badge()
+                ->color('primary')
+                ->limit(20)
+                ->tooltip(fn ($state) => $state),
 
-                TextColumn::make('govt_id_type')
-                    ->label('ID Type')
-                    ->sortable()
-                    ->limit(20),
+            /** 🪪 ID Type */
+            Tables\Columns\TextColumn::make('govt_id_type')
+                ->label('🪪 ID Type')
+                ->sortable()
+                ->limit(20)
+                ->tooltip(fn ($state) => $state),
 
-                TextColumn::make('govt_id_number')
-                    ->label('ID Number')
-                    ->limit(20)
-                    ->searchable(),
+            /** 🔢 ID Number */
+            Tables\Columns\TextColumn::make('govt_id_number')
+                ->label('🔢 ID Number')
+                ->searchable()
+                ->limit(20)
+                ->tooltip(fn ($state) => $state),
 
-                TextColumn::make('issue_date')
-                    ->label('Issue Date')
-                    ->date()
-                    ->sortable(),
+            /** 📅 Dates */
+            Tables\Columns\TextColumn::make('issue_date')
+                ->label('📆 Issue Date')
+                ->date()
+                ->sortable(),
 
-                TextColumn::make('expire_date')
-                    ->label('Expiry Date')
-                    ->date()
-                    ->sortable(),
+            Tables\Columns\TextColumn::make('expire_date')
+                ->label('⏳ Expiry Date')
+                ->date()
+                ->sortable(),
 
-                BadgeColumn::make('status')
-                    ->colors([
-                        'warning' => 'pending',
-                        'success' => 'verified',
-                        'danger' => 'rejected',
-                    ])
-                    ->sortable()
-                    ->label('Status'),
+            /** 🏷️ Status */
+            Tables\Columns\BadgeColumn::make('status')
+                ->label('📌 Status')
+                ->sortable()
+                ->colors([
+                    'warning' => 'pending',
+                    'success' => 'verified',
+                    'danger' => 'rejected',
+                ])
+                ->formatStateUsing(fn ($state) => ucfirst($state)),
 
-                TextColumn::make('created_at')
-                    ->label('Created At')
-                    ->dateTime()
-                    ->sortable(),
+            /** 🕒 Created/Updated */
+            Tables\Columns\TextColumn::make('created_at')
+                ->label('🕒 Created At')
+                ->dateTime('M d, Y H:i')
+                ->sortable(),
 
-                TextColumn::make('updated_at')
-                    ->label('Updated At')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-            ])
+            Tables\Columns\TextColumn::make('updated_at')
+                ->label('🔄 Updated At')
+                ->dateTime('M d, Y H:i')
+                ->sortable()
+                ->toggleable(isToggledHiddenByDefault: true),
+        ])
+
             ->filters([
                 SelectFilter::make('status')
                     ->options([

@@ -10,10 +10,5 @@ class ListExchangeRates extends ListRecords
 {
     protected static string $resource = ExchangeRateResource::class;
 
-    protected function getHeaderActions(): array
-    {
-        return [
-            Actions\CreateAction::make(),
-        ];
-    }
+    
 }

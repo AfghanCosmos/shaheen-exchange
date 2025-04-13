@@ -11,8 +11,12 @@ use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Fieldset;
-use Filament\Forms\Components\Textarea;
-use Filament\Forms\Components\DatePicker;
+use Filament\Infolists\Infolist;
+use Filament\Infolists\Components\Section as InfolistSection;
+use Filament\Infolists\Components\TextEntry;
+use Filament\Infolists\Components\ImageEntry;
+use Filament\Infolists\Components\RepeatableEntry;
+use Illuminate\Support\Str;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Toggle;
@@ -21,11 +25,6 @@ use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Filament\Tables\Columns\BadgeColumn;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Columns\IconColumn;
-use Filament\Tables\Filters\SelectFilter;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Database\Eloquent\Builder;
 
 use Filament\Forms\Components\Repeater;
@@ -69,191 +68,185 @@ class CustomerResource extends Resource
     {
         return $form
             ->schema([
-                Section::make('User Information')
+
+                /** ─────── 👤 USER PROFILE ─────── */
+                Section::make('👤 User Information')
+                    ->icon('heroicon-o-user-circle')
+                    ->description('Basic profile and account status.')
+                    ->columns(3)
                     ->schema([
                         Forms\Components\TextInput::make('name')
-                            ->label('Full Name')
+                            ->label('🧍 Full Name')
                             ->required()
-                            ->placeholder('e.g., John Doe')
-                            ->maxLength(255),
+                            ->placeholder('e.g., John Doe'),
 
                         Forms\Components\TextInput::make('email')
-                            ->label('Email Address')
+                            ->label('📧 Email Address')
                             ->email()
-                            ->placeholder('e.g., john.doe@example.com')
-                            ->unique('users', 'email', ignoreRecord: true),
+                            ->unique('users', 'email', ignoreRecord: true)
+                            ->placeholder('e.g., john.doe@example.com'),
 
                         Forms\Components\TextInput::make('phone_number')
-                            ->label('Phone Number')
-                            // ->tel()
-                            ->placeholder('e.g., +1 234 567 8901')
+                            ->label('📞 Phone Number')
                             ->required()
-                            ->unique('users', 'phone_number', ignoreRecord: true),
-
+                            ->unique('users', 'phone_number', ignoreRecord: true)
+                            ->placeholder('e.g., +1 234 567 8901'),
 
                         Forms\Components\Select::make('status')
-                            ->label('Status')
+                            ->label('⚙️ Account Status')
                             ->options([
                                 'active' => 'Active',
                                 'inactive' => 'Inactive',
                                 'banned' => 'Banned',
                             ])
-                            ->hidden(fn ($record) => $record === null)
                             ->default('active')
-                            ->native(false),
+                            ->native(false)
+                            ->hidden(fn ($record) => $record === null),
 
                         Forms\Components\FileUpload::make('image')
-                            ->label('Profile Image')
+                            ->label('🖼️ Profile Image')
                             ->image()
-                            ->columnSpanFull()
                             ->imageEditor()
                             ->directory('public/users')
-                            ->nullable(),
-
-
-                            Forms\Components\Fieldset::make('User KYC')
-                            ->relationship('kyc')
-                ->schema([
-                    Section::make('Information')
-                        ->schema([
-
-                        TextInput::make('govt_id_type')
-                            ->label('Government ID Type')
-                            ->maxLength(255)
-                            ->required()
-                            ->placeholder('e.g., Passport, Driver’s License'),
-
-                        TextInput::make('govt_id_number')
-                            ->label('Government ID Number')
-                            ->maxLength(255)
-                            ->required()
-                            ->unique('k_y_c_s', 'govt_id_number', ignoreRecord: true)
-                            ->placeholder('Enter ID Number'),
-
-                            DatePicker::make('issue_date')
-                            ->label('Issue Date')
-                            ->required(),
-
-                        DatePicker::make('expire_date')
-                            ->label('Expiry Date')
-                            ->required()
-                            ->after('issue_date'),
-                    ])->columns(4),
-
-                    Section::make('Document Details')
-                    ->schema([
-                        Forms\Components\FileUpload::make('govt_id_file')
-                            ->label('Government ID File')
-                            ->directory('kyc_documents')
-                            ->required()
-                            ->maxSize(4048)
-                            ->acceptedFileTypes(['image/jpeg', 'image/png', 'application/pdf'])
-                            ->visibility('public'), // Ensure uploaded files are accessible
-
-
-
-                       // Ensures expiry date is after issue date
-                    ])->columns(1),
-
-                    Section::make('Status & Responses')
-                    ->schema([
-                        Select::make('status')
-                            ->label('Status')
-                            ->native(false)
-                            ->options([
-                                'pending' => 'Pending',
-                                'verified' => 'Verified',
-                                'rejected' => 'Rejected',
-                            ])
-                            ->default('pending')
-                            ->required(),
-
-                        Textarea::make('rejection_reason')
-                            ->label('Rejection Reason')
-                            ->placeholder('Provide a reason for rejection (if applicable)')
-                            ->columnSpanFull()
-                            ->visible(fn ($get) => $get('status') === 'rejected'),
-
-                        Textarea::make('third_party_response')
-                            ->label('Third-Party Response')
-                            ->placeholder('Details from third-party verification (if applicable)')
+                            ->nullable()
                             ->columnSpanFull(),
-                        Forms\Components\Toggle::make('is_active')
-                            ->label('Account Active')
-                            ->columnSpanFull()
-                            ->inline(false)
-                            ->default(true),
                     ]),
 
-                                ]),
-                    ])->columns(4),
+                /** ─────── 🔐 KYC FIELDSET ─────── */
+                Fieldset::make('🪪 User KYC')
+                    ->relationship('kyc')
+                    ->columns(1)
+                    ->schema([
 
+                        /** ─── ID Information ─── */
+                        Section::make('📄 Identification Details')
+                            ->icon('heroicon-o-identification')
+                            ->columns(4)
+                            ->schema([
+                                Forms\Components\TextInput::make('govt_id_type')
+                                    ->label('📘 ID Type')
+                                    ->required()
+                                    ->placeholder('e.g., Passport, National ID'),
 
+                                Forms\Components\TextInput::make('govt_id_number')
+                                    ->label('🆔 ID Number')
+                                    ->required()
+                                    ->unique('k_y_c_s', 'govt_id_number', ignoreRecord: true)
+                                    ->placeholder('e.g., A1234567'),
 
-                    Repeater::make('banks')
+                                Forms\Components\DatePicker::make('issue_date')
+                                    ->label('📅 Issue Date')
+                                    ->required(),
+
+                                Forms\Components\DatePicker::make('expire_date')
+                                    ->label('📅 Expiry Date')
+                                    ->required()
+                                    ->after('issue_date'),
+                            ]),
+
+                        /** ─── ID Upload ─── */
+                        Section::make('📁 Document Upload')
+                            ->columns(1)
+                            ->schema([
+                                Forms\Components\FileUpload::make('govt_id_file')
+                                    ->label('🗂️ Upload Document')
+                                    ->directory('kyc_documents')
+                                    ->acceptedFileTypes(['image/jpeg', 'image/png', 'application/pdf'])
+                                    ->required()
+                                    ->maxSize(4048)
+                                    ->visibility('public'),
+                            ]),
+
+                        /** ─── KYC Status ─── */
+                        Section::make('📊 KYC Verification Status')
+                            ->icon('heroicon-o-shield-check')
+                            ->columns(2)
+                            ->schema([
+                                Forms\Components\Textarea::make('third_party_response')
+                                    ->label('📤 Third-Party Response')
+                                    ->placeholder('Optional notes or response from verification service.')
+                                    ->columnSpanFull(),
+
+                                Forms\Components\Select::make('status')
+                                    ->label('🔍 Status')
+                                    ->native(false)
+                                    ->options([
+                                        'pending' => 'Pending',
+                                        'verified' => 'Verified',
+                                        'rejected' => 'Rejected',
+                                    ])
+                                    ->default('pending')
+                                    ->required(),
+
+                                Forms\Components\Toggle::make('is_active')
+                                    ->label('✅ Account Active')
+                                    ->default(true)
+                                    ->inline(false)
+                                    ->columnSpan(1),
+
+                                Forms\Components\Textarea::make('rejection_reason')
+                                    ->label('🚫 Rejection Reason')
+                                    ->placeholder('If rejected, explain why.')
+                                    ->visible(fn ($get) => $get('status') === 'rejected')
+                                    ->columnSpanFull(),
+
+                            ]),
+                    ]),
+
+                /** ─────── 💳 BANK ACCOUNTS ─────── */
+                Repeater::make('banks')
+                    ->label('🏦 Bank Accounts')
                     ->relationship('banks')
                     ->columnSpanFull()
+                    ->reorderable()
                     ->schema([
-                        Section::make('Bank Account Details')
-                                    ->schema([
+                        Section::make('🏦 Bank Account Details')
+                            ->icon('heroicon-o-banknotes')
+                            ->columns(3)
+                            ->schema([
+                                Forms\Components\TextInput::make('bank_name')
+                                    ->label('🏛️ Bank Name')
+                                    ->required(),
 
+                                Forms\Components\TextInput::make('account_holder_name')
+                                    ->label('👤 Account Holder')
+                                    ->required(),
 
-                        TextInput::make('bank_name')
-                            ->label('Bank Name')
-                            ->maxLength(100)
-                            ->required(),
+                                Forms\Components\TextInput::make('account_number')
+                                    ->label('🔢 Account Number')
+                                    ->required()
+                                    ->unique('bank_accounts', 'account_number', ignoreRecord: true),
 
-                        TextInput::make('account_holder_name')
-                            ->label('Account Holder Name')
-                            ->maxLength(100)
-                            ->required(),
+                                Forms\Components\TextInput::make('iban')
+                                    ->label('📘 IBAN'),
 
-                        TextInput::make('account_number')
-                            ->label('Account Number')
-                            ->maxLength(50)
-                            ->required()
-                            ->unique('bank_accounts', 'account_number', ignoreRecord: true),
+                                Forms\Components\TextInput::make('swift_code')
+                                    ->label('🔄 SWIFT Code'),
 
-                        TextInput::make('iban')
-                            ->label('IBAN')
-                            ->maxLength(34)
-                            ->nullable(),
+                                Select::make('currency_id')
+                                    ->label('💱 Currency')
+                                    ->relationship('currency', 'code')
+                                    ->required()
+                                    ->searchable()
+                                    ->preload(),
 
-                        TextInput::make('swift_code')
-                            ->label('SWIFT Code')
-                            ->maxLength(11)
-                            ->nullable(),
+                                Select::make('status')
+                                    ->label('📌 Status')
+                                    ->options([
+                                        'active' => 'Active',
+                                        'inactive' => 'Inactive',
+                                        'closed' => 'Closed',
+                                    ])
+                                    ->default('active'),
 
-                        Select::make('currency_id')
-                            ->label('Currency')
-                            ->relationship('currency', 'code')
-                            ->searchable()
-                            ->preload()
-                            ->required(),
-
-
-                        Select::make('status')
-                            ->label('Status')
-                            ->options([
-                                'active' => 'Active',
-                                'inactive' => 'Inactive',
-                                'closed' => 'Closed',
-                            ])
-                            ->default('active')
-                            ->required(),
-
-
-                            Toggle::make('is_primary')
-                            ->label('Primary Account')
-                            ->inline(false)
-                            ->default(false),
-
-                    ])->columns(3),
-
-            ]),
-
-        ]);
+                                Toggle::make('is_primary')
+                                    ->label('⭐ Primary Account')
+                                    ->inline(false),
+                            ]),
+                    ]),
+            ]);
     }
+
 
     public static function table(Table $table): Table
     {
@@ -261,56 +254,80 @@ class CustomerResource extends Resource
         ->defaultSort('created_at', 'desc')
         ->modifyQueryUsing(fn(Builder $query) => $query->where('user_type', 'customer')->orderBy('created_at', 'desc'))
 
-            ->columns([
-                Tables\Columns\ImageColumn::make('image')
-                    ->circular()
-                    ->label('Profile Image'),
+        ->columns([
+            /** 🖼️ Profile Image */
+            Tables\Columns\ImageColumn::make('image')
+                ->label('🖼️ Profile')
+                ->circular()
+                ->height(40),
 
-                Tables\Columns\TextColumn::make('name')
-                    ->sortable()
-                    ->searchable(),
+            /** 👤 Name */
+            Tables\Columns\TextColumn::make('name')
+                ->label('👤 Name')
+                ->sortable()
+                ->searchable()
+                ->weight('medium'),
 
-                Tables\Columns\TextColumn::make('email')
-                    ->copyable()
-                    ->searchable(),
+            /** 📧 Email */
+            Tables\Columns\TextColumn::make('email')
+                ->label('📧 Email')
+                ->copyable()
+                ->searchable()
+                ->icon('heroicon-o-envelope')
+                ->tooltip(fn ($state) => $state),
 
-                Tables\Columns\TextColumn::make('phone_number')
-                    ->sortable()
-                    ->searchable(),
+            /** 📞 Phone */
+            Tables\Columns\TextColumn::make('phone_number')
+                ->label('📞 Phone')
+                ->sortable()
+                ->searchable()
+                ->icon('heroicon-o-phone'),
 
-                Tables\Columns\TextColumn::make('user_type')
-                    ->badge()
-                    ->colors([
-                        'primary' => 'admin',
-                        'success' => 'customer',
-                        'info' => 'vendor',
-                        'warning' => 'agent',
-                    ]),
+            /** 🧩 User Type */
+            Tables\Columns\TextColumn::make('user_type')
+                ->label('🧩 Type')
+                ->badge()
+                ->sortable()
+                ->color(fn ($state) => match ($state) {
+                    'admin' => 'primary',
+                    'customer' => 'success',
+                    'vendor' => 'info',
+                    'agent' => 'warning',
+                    default => 'gray',
+                }),
 
-                Tables\Columns\BadgeColumn::make('status')
-                    ->colors([
-                        'success' => 'active',
-                        'warning' => 'inactive',
-                        'danger' => 'banned',
-                    ]),
+            /** 📌 Status */
+            Tables\Columns\BadgeColumn::make('status')
+                ->label('📌 Status')
+                ->sortable()
+                ->colors([
+                    'success' => 'active',
+                    'warning' => 'inactive',
+                    'danger' => 'banned',
+                ])
+                ->formatStateUsing(fn ($state) => ucfirst($state)),
 
-                Tables\Columns\IconColumn::make('is_active')
-                    ->boolean()
-                    ->label('Active'),
+            /** ✅ Active Toggle */
+            Tables\Columns\IconColumn::make('is_active')
+                ->label('✅ Active')
+                ->boolean()
+                ->alignCenter(),
 
-                Tables\Columns\TextColumn::make('created_at')
-                        ->label('Created At')
-                        ->formatStateUsing(fn($state) => Carbon::parse($state)->diffForHumans()) // ✅ Human-readable format
-                        ->sortable()
-                        ->toggleable(isToggledHiddenByDefault: true), // ✅ Hidden by default for cleaner UI
+            /** 🕒 Created At */
+            Tables\Columns\TextColumn::make('created_at')
+                ->label('📅 Created')
+                ->formatStateUsing(fn ($state) => \Carbon\Carbon::parse($state)->diffForHumans())
+                ->sortable()
+                ->toggleable(isToggledHiddenByDefault: true),
 
-                Tables\Columns\TextColumn::make('updated_at')
-                        ->label('Updated At')
-                        ->formatStateUsing(fn($state) => Carbon::parse($state)->diffForHumans()) // ✅ Human-readable format
-                        ->sortable()
-                        ->toggleable(isToggledHiddenByDefault: true),
+            /** 🔄 Updated At */
+            Tables\Columns\TextColumn::make('updated_at')
+                ->label('🔄 Updated')
+                ->formatStateUsing(fn ($state) => \Carbon\Carbon::parse($state)->diffForHumans())
+                ->sortable()
+                ->toggleable(isToggledHiddenByDefault: true),
+        ])
 
-            ])
             ->filters([
                 Tables\Filters\TrashedFilter::make(),
                 Tables\Filters\SelectFilter::make('user_type')
@@ -346,6 +363,72 @@ class CustomerResource extends Resource
             ]);
     }
 
+    public static function infolist(Infolist $infolist): Infolist
+    {
+        return $infolist->schema([
+            InfolistSection::make('👤 Customer Profile')
+                ->icon('heroicon-o-user-circle')
+                ->columns(3)
+                ->schema([
+                    ImageEntry::make('image')->label('Profile Image')->circular()->columnSpan(1),
+
+                    TextEntry::make('name')->label('Full Name')->columnSpan(2)->weight('medium'),
+                    TextEntry::make('email')->label('Email'),
+                    TextEntry::make('phone_number')->label('Phone'),
+                    TextEntry::make('status')->badge()->color(fn ($state) => match ($state) {
+                        'active' => 'success',
+                        'inactive' => 'warning',
+                        'banned' => 'danger',
+                    }),
+                    TextEntry::make('is_active')
+                        ->label('Active')
+                        ->boolean(),
+                ]),
+
+            InfolistSection::make('📄 KYC Details')
+                ->columns(2)
+                ->schema([
+                    TextEntry::make('kyc.govt_id_type')->label('ID Type'),
+                    TextEntry::make('kyc.govt_id_number')->label('ID Number'),
+                    TextEntry::make('kyc.issue_date')->date()->label('Issue Date'),
+                    TextEntry::make('kyc.expire_date')->date()->label('Expiry Date'),
+                    TextEntry::make('kyc.status')->badge()->color(fn ($state) => match ($state) {
+                        'pending' => 'warning',
+                        'verified' => 'success',
+                        'rejected' => 'danger',
+                    }),
+                    TextEntry::make('kyc.rejection_reason')->visible(fn ($state) => filled($state)),
+                    TextEntry::make('kyc.third_party_response')->visible(fn ($state) => filled($state)),
+                    ImageEntry::make('kyc.govt_id_file')
+                        ->label('Uploaded Document')
+                        ->openUrlInNewTab()
+                        ->disk('public')
+                        ->visible(fn ($record) => filled($record->kyc?->govt_id_file)),
+                ]),
+
+            InfolistSection::make('🏦 Bank Accounts')
+                ->schema([
+                    RepeatableEntry::make('banks')
+                        ->columns(3)
+                        ->schema([
+                            TextEntry::make('bank_name')->label('Bank'),
+                            TextEntry::make('account_holder_name')->label('Account Holder'),
+                            TextEntry::make('account_number')->label('Account Number'),
+                            TextEntry::make('iban'),
+                            TextEntry::make('swift_code'),
+                            TextEntry::make('currency.code')->label('Currency'),
+                            TextEntry::make('status')->badge()->color(fn ($state) => match ($state) {
+                                'active' => 'success',
+                                'inactive' => 'warning',
+                                'closed' => 'danger',
+                            }),
+                            TextEntry::make('is_primary')->label('Primary')->boolean(),
+                        ])
+                        ->emptyLabel('No bank accounts found.'),
+                ]),
+        ]);
+    }
+
     public static function getRelations(): array
     {
         return [
@@ -362,11 +445,14 @@ class CustomerResource extends Resource
         ];
     }
 
+
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
             ->withoutGlobalScopes([
                 SoftDeletingScope::class,
-            ]);
+            ])
+            ->where('user_type', 'customer')
+            ->where('id', auth()->id());
     }
 }

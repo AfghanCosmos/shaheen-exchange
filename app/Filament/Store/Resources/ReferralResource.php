@@ -50,34 +50,70 @@ class ReferralResource extends Resource
     {
         return $table
         ->defaultSort('created_at', 'desc')
-            ->columns([
-                Tables\Columns\TextColumn::make('referrer.name')
-                    ->numeric()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('referredUser.name')
-                    ->numeric()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('reward_amount')
-                    ->numeric()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('status')
-                ->badge(),
-                Tables\Columns\TextColumn::make('credited_at')
-                    ->dateTime()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('created_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('updated_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('deleted_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-            ])
+        ->columns([
+            /** 🙋 Referrer */
+            Tables\Columns\TextColumn::make('referrer.name')
+                ->label('🙋 Referrer')
+                ->sortable()
+                ->searchable()
+                ->badge()
+                ->color('primary'),
+
+            /** 🧑 Referred User */
+            Tables\Columns\TextColumn::make('referredUser.name')
+                ->label('👤 Referred User')
+                ->sortable()
+                ->searchable()
+                ->badge()
+                ->color('info'),
+
+            /** 💰 Reward Amount */
+            Tables\Columns\TextColumn::make('reward_amount')
+                ->label('💰 Reward')
+                ->numeric(decimalPlaces: 2, decimalSeparator: '.', thousandsSeparator: ',')
+                ->sortable()
+                ->color('success'),
+
+            /** 📌 Status */
+            Tables\Columns\TextColumn::make('status')
+                ->label('📌 Status')
+                ->badge()
+                ->sortable()
+                ->color(fn ($state) => match ($state) {
+                    'pending' => 'warning',
+                    'approved' => 'success',
+                    'declined' => 'danger',
+                    default => 'gray',
+                }),
+
+            /** 📆 Credited Date */
+            Tables\Columns\TextColumn::make('credited_at')
+                ->label('📅 Credited At')
+                ->dateTime('M d, Y H:i')
+                ->sortable(),
+
+            /** 🕒 Created */
+            Tables\Columns\TextColumn::make('created_at')
+                ->label('🕒 Created')
+                ->dateTime('M d, Y H:i')
+                ->sortable()
+                ->toggleable(isToggledHiddenByDefault: true),
+
+            /** 🔄 Updated */
+            Tables\Columns\TextColumn::make('updated_at')
+                ->label('🔄 Updated')
+                ->dateTime('M d, Y H:i')
+                ->sortable()
+                ->toggleable(isToggledHiddenByDefault: true),
+
+            /** 🗑️ Soft Deleted */
+            Tables\Columns\TextColumn::make('deleted_at')
+                ->label('🗑️ Deleted')
+                ->dateTime('M d, Y H:i')
+                ->sortable()
+                ->toggleable(isToggledHiddenByDefault: true),
+        ])
+
             ->filters([
                 Tables\Filters\TrashedFilter::make(),
             ])
@@ -116,6 +152,7 @@ class ReferralResource extends Resource
         return parent::getEloquentQuery()
             ->withoutGlobalScopes([
                 SoftDeletingScope::class,
-            ]);
+            ])
+            ->where('referrer_id', auth()->id()); // ✅ Only show records where the current user is the referrer
     }
 }
