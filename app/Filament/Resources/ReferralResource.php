@@ -23,26 +23,42 @@ class ReferralResource extends Resource
     {
         return $form
             ->schema([
+                Forms\Components\Section::make('Referral Information')
+                    ->schema([
                 Forms\Components\Select::make('referrer_id')
+                    ->label('Referrer')
                     ->relationship('referrer', 'name')
                     ->searchable()
                     ->required(),
                 Forms\Components\Select::make('referred_user_id')
+                    ->label('Referred User')
                     ->relationship('referredUser', 'name')
                     ->searchable()
                     ->required(),
+                Forms\Components\Select::make('currency_id')
+                    ->label('Currency')
+                    ->relationship('currency', 'name')
+                    ->searchable()
+                    ->preload()
+                    ->required(),
                 Forms\Components\TextInput::make('reward_amount')
-                    ->required()
-                    ->numeric(),
+                    ->label('Reward Amount')
+                    ->numeric()
+                    ->required(),
                 Forms\Components\Select::make('status')
+                    ->label('Status')
                     ->options([
-                        'pending' => 'Pending',
+                        'pending'  => 'Pending',
                         'credited' => 'Credited',
-                        'failed' => 'Failed',
+                        'failed'   => 'Failed',
                     ])
                     ->default('pending')
                     ->required(),
-                Forms\Components\DateTimePicker::make('credited_at'),
+                Forms\Components\DateTimePicker::make('credited_at')
+                    ->label('Credited At')
+                    ->displayFormat('Y-m-d H:i')
+                    ->nullable(),
+    ])->columns(3),
             ]);
     }
 
@@ -52,10 +68,13 @@ class ReferralResource extends Resource
         ->defaultSort('created_at', 'desc')
             ->columns([
                 Tables\Columns\TextColumn::make('referrer.name')
-                    ->numeric()
+
                     ->sortable(),
                 Tables\Columns\TextColumn::make('referredUser.name')
-                    ->numeric()
+
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('currency.name')
+
                     ->sortable(),
                 Tables\Columns\TextColumn::make('reward_amount')
                     ->numeric()

@@ -54,7 +54,7 @@ class KycResource extends Resource
                             ->maxLength(255)
                             ->unique('k_y_c_s', 'govt_id_number', ignoreRecord: true)
                             ->placeholder('Enter ID Number'),
-                    ])->columns(2),
+                    ])->columns(3),
 
                 Section::make('Document Details')
                     ->schema([

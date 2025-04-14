@@ -25,6 +25,13 @@ class UserResource extends Resource
             ->schema([
                 Section::make('User Information')
                     ->schema([
+                        Forms\Components\Select::make('store_id')
+                        ->relationship('storeRelatedTo', 'name')
+                        ->searchable(['name'])
+                            ->default(auth()->user()->store->id)
+                            ->visible(fn ($record) => auth()->user()->hasRole('super_admin'))
+                            ->columnSpanFull(),
+
                         Forms\Components\TextInput::make('name')
                             ->label('Full Name')
                             ->required()
@@ -49,6 +56,7 @@ class UserResource extends Resource
                             ->label('Password')
                             ->password()
                             ->required(fn ($record) => $record === null)
+                            ->visible(fn ($record) => $record === null)
                             ->maxLength(255),
 
                         Forms\Components\Select::make('user_type')
@@ -94,10 +102,21 @@ class UserResource extends Resource
         return $table
         ->defaultSort('created_at', 'desc')
             ->columns([
+
+            Tables\Columns\TextColumn::make('uuid')
+                    ->label('User ID')
+                    ->sortable()
+                    ->searchable()
+                    ->toggleable(),
                 Tables\Columns\ImageColumn::make('image')
                     ->circular()
                     ->label('Profile Image'),
 
+                Tables\Columns\TextColumn::make('storeRelatedTo.name')
+                    ->label('Store Related To')
+                    ->sortable()
+                    ->searchable()
+                    ->toggleable(),
                 Tables\Columns\TextColumn::make('name')
                     ->sortable()
                     ->searchable(),

@@ -74,9 +74,6 @@ class BankAccountResource extends Resource
                             ->searchable()
                             ->required(),
 
-                        Toggle::make('is_primary')
-                            ->label('Primary Account')
-                            ->default(false),
 
                         Select::make('status')
                             ->label('Status')
@@ -87,8 +84,14 @@ class BankAccountResource extends Resource
                             ])
                             ->default('active')
                             ->required(),
+
+
+                        Toggle::make('is_primary')
+                            ->label('Primary Account')
+                            ->inline(false)
+                            ->default(false),
                     ])
-                    ->columns(2),
+                    ->columns(3),
             ]);
     }
 
