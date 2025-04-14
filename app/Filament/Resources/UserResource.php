@@ -132,11 +132,20 @@ class UserResource extends Resource
                             ->image()
                             ->imageEditor()
                             ->directory('public/users')
-                            ->nullable()
-                            ->columnSpanFull(),
-                    ]),
-                ]),
-        ]);
+                            ->nullable(),
+
+                        Forms\Components\Toggle::make('is_active')
+                            ->label('Account Active')
+                            ->columnSpanFull()
+                            ->default(true),
+
+                            Forms\Components\CheckboxList::make('roles')
+    ->relationship('roles', 'name')
+    ->columnSpanFull()
+    ->searchable(),
+                    ])
+                    ->columns(3)
+            ]);
     }
 
 

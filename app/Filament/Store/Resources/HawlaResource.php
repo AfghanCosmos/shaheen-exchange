@@ -100,7 +100,12 @@ class HawlaResource extends Resource
                             ->native()
                             ->required()
                             ->live()
-                            ->afterStateUpdated(fn ($state, callable $set, callable $get) => static::syncCurrencies($state, $set, $get)),
+                            ->afterStateUpdated(function ($state, callable $set, callable $get) {
+                        if (!$get('receiving_amount_currency_id')) {
+                            $set('receiving_amount_currency_id', $state);
+                        }
+                        self::handleExchangeAndCommission($get, $set);
+                    }),
 
                         Forms\Components\TextInput::make('given_amount')
                             ->label('Given Amount')
