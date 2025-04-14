@@ -93,7 +93,9 @@ class UserResource extends Resource
                             ->columnSpanFull()
                             ->default(true),
 
-                            
+                            Forms\Components\CheckboxList::make('roles')
+    ->relationship('roles', 'name')
+    ->searchable(),
                     ])
                     ->columns(3)
             ]);
