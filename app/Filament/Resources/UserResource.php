@@ -3,7 +3,11 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\UserResource\Pages;
+use App\Filament\Resources\UserResource\RelationManagers\BanksRelationManager;
+use App\Filament\Resources\UserResource\RelationManagers\CreatedHawlasRelationManager;
 use App\Filament\Resources\UserResource\RelationManagers\KycRelationManager;
+use App\Filament\Resources\UserResource\RelationManagers\StoreRelationManager;
+use App\Filament\Resources\UserResource\RelationManagers\WalletsRelationManager;
 use App\Models\User;
 use Carbon\Carbon;
 use Filament\Forms;
@@ -29,7 +33,7 @@ class UserResource extends Resource
                 ->icon('heroicon-o-user-circle')
                 ->schema([
                     Forms\Components\Card::make()->schema([
-                        Forms\Components\Grid::make(3)->schema([
+                        Forms\Components\Grid::make(4)->schema([
 
                             // Store (Visible only to Super Admin)
                             Forms\Components\Select::make('store_id')
@@ -256,6 +260,10 @@ class UserResource extends Resource
     {
         return [
             KycRelationManager::class,
+            WalletsRelationManager::class,
+            StoreRelationManager::class,
+            BanksRelationManager::class,
+            CreatedHawlasRelationManager::class,
         ];
     }
 

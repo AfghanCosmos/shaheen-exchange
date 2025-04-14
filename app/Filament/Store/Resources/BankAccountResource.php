@@ -34,86 +34,111 @@ class BankAccountResource extends Resource
      * Form Definition
      */
     public static function form(Form $form): Form
-    {
-        return $form->schema([
-            Section::make('🏦 Bank Account Details')
-                ->icon('heroicon-o-banknotes')
-                ->description('Please enter the bank account details below. All fields marked with * are required.')
-                ->columns(1)
-                ->schema([
-                    Card::make()
-                        ->collapsible()
-                        ->columns(2)
-                        ->schema([
+{
+    return $form->schema([
+        // SECTION 1: Basic Info
+        Section::make('🏛️ Bank & Holder Info')
+            ->icon('heroicon-o-banknotes')
+            ->description('Provide the name of the bank and account holder.')
+            ->schema([
+                Grid::make(2)->schema([
+                    Select::make('user_id')
+                    ->label('👤 User')
+                    ->relationship('user', 'name', function ($query) {
+                        $query->where('user_type', 'customer')
+                              ->where('store_id', auth()->user()->store->id);
+                    })
+                    ->searchable()
+                    ->preload()
+                    ->columnSpanFull()
+                    ->required()
+                    ->placeholder('Select user'),
 
-                            TextInput::make('bank_name')
-                                ->label('🏛️ Bank Name')
-                                ->prefixIcon('heroicon-o-banknotes')
-                                ->maxLength(100)
-                                ->placeholder('e.g., Azizi Bank')
-                                ->required(),
+                    TextInput::make('bank_name')
+                        ->label('🏛️ Bank Name')
+                        ->prefixIcon('heroicon-o-banknotes')
+                        ->maxLength(100)
+                        ->placeholder('e.g., Azizi Bank')
+                        ->required(),
 
-                            TextInput::make('account_holder_name')
-                                ->label('👤 Account Holder Name')
-                                ->prefixIcon('heroicon-o-user-circle')
-                                ->maxLength(100)
-                                ->placeholder('e.g., Mohammad A. Rahimi')
-                                ->required(),
-
-                            TextInput::make('account_number')
-                                ->label('🔢 Account Number')
-                                ->prefixIcon('heroicon-o-hashtag')
-                                ->maxLength(50)
-                                ->placeholder('e.g., 010101010101')
-                                ->required()
-                                ->unique('bank_accounts', 'account_number', ignoreRecord: true),
-
-                            TextInput::make('iban')
-                                ->label('📘 IBAN')
-                                ->prefixIcon('heroicon-o-identification')
-                                ->maxLength(34)
-                                ->placeholder('e.g., AF56001111223344556677')
-                                ->nullable()
-                                ->hint('International Bank Account Number'),
-
-                            TextInput::make('swift_code')
-                                ->label('🔄 SWIFT Code')
-                                ->prefixIcon('heroicon-o-finger-print')
-                                ->maxLength(11)
-                                ->placeholder('e.g., AFZNKBLKXXX')
-                                ->nullable()
-                                ->hint('Used for international transfers'),
-
-                            Select::make('currency_id')
-                                ->label('💱 Currency')
-                                ->prefixIcon('heroicon-o-currency-dollar')
-                                ->relationship('currency', 'code')
-                                ->searchable()
-                                ->required()
-                                ->hint('Select account currency'),
-
-                            Toggle::make('is_primary')
-                                ->label('⭐ Primary Account')
-                                ->default(false)
-                                ->inline(false)
-                                ->hint('Mark as default account for transactions'),
-
-                            Select::make('status')
-                                ->label('📌 Status')
-                                ->prefixIcon('heroicon-o-adjustments-horizontal')
-                                ->native(false)
-                                ->options([
-                                    'active' => 'Active',
-                                    'inactive' => 'Inactive',
-                                    'closed' => 'Closed',
-                                ])
-                                ->default('active')
-                                ->required()
-                                ->hint('Account operational status'),
-                        ]),
+                    TextInput::make('account_holder_name')
+                        ->label('👤 Account Holder Name')
+                        ->prefixIcon('heroicon-o-user-circle')
+                        ->maxLength(100)
+                        ->placeholder('e.g., Mohammad A. Rahimi')
+                        ->required(),
                 ]),
-        ]);
-    }
+            ]),
+
+        // SECTION 2: Account Identifiers
+        Section::make('🔢 Account Identifiers')
+            ->icon('heroicon-o-hashtag')
+            ->description('Details for identifying the account.')
+            ->schema([
+                Grid::make(2)->schema([
+                    TextInput::make('account_number')
+                        ->label('🔢 Account Number')
+                        ->prefixIcon('heroicon-o-hashtag')
+                        ->maxLength(50)
+                        ->placeholder('e.g., 010101010101')
+                        ->required()
+                        ->unique('bank_accounts', 'account_number', ignoreRecord: true),
+
+                    TextInput::make('iban')
+                        ->label('📘 IBAN')
+                        ->prefixIcon('heroicon-o-identification')
+                        ->maxLength(34)
+                        ->placeholder('e.g., AF56001111223344556677')
+                        ->nullable()
+                        ->hint('International Bank Account Number'),
+
+                    TextInput::make('swift_code')
+                        ->label('🔄 SWIFT Code')
+                        ->prefixIcon('heroicon-o-finger-print')
+                        ->maxLength(11)
+                        ->placeholder('e.g., AFZNKBLKXXX')
+                        ->nullable()
+                        ->hint('Used for international transfers'),
+                ]),
+            ]),
+
+        // SECTION 3: Financial Settings
+        Section::make('💱 Currency & Account Settings')
+            ->icon('heroicon-o-cog')
+            ->description('Choose currency, status, and account priority.')
+            ->schema([
+                Grid::make(2)->schema([
+                    Select::make('currency_id')
+                        ->label('💱 Currency')
+                        ->prefixIcon('heroicon-o-currency-dollar')
+                        ->relationship('currency', 'code')
+                        ->searchable()
+                        ->required()
+                        ->hint('Select account currency'),
+
+                    Select::make('status')
+                        ->label('📌 Status')
+                        ->prefixIcon('heroicon-o-adjustments-horizontal')
+                        ->native(false)
+                        ->options([
+                            'active' => 'Active',
+                            'inactive' => 'Inactive',
+                            'closed' => 'Closed',
+                        ])
+                        ->default('active')
+                        ->required()
+                        ->hint('Account operational status'),
+
+                    Toggle::make('is_primary')
+                        ->label('⭐ Primary Account')
+                        ->inline(false)
+                        ->default(false)
+                        ->hint('Mark this as the default account for transactions'),
+                ]),
+            ]),
+    ]);
+}
+
 
 
     /**
@@ -123,6 +148,10 @@ class BankAccountResource extends Resource
     {
         return $table
         ->defaultSort('created_at', 'desc')
+        ->modifyQueryUsing(fn ($query) => $query->whereHas('user', function ($query) {
+            $query->where('store_id', auth()->user()->store->id);
+        }))
+
         ->columns([
             /** 👤 User */
             TextColumn::make('user.name')

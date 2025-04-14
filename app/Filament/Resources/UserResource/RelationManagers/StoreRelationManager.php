@@ -2,8 +2,7 @@
 
 namespace App\Filament\Resources\UserResource\RelationManagers;
 
-use App\Filament\Resources\KycResource;
-use App\Models\KYC;
+use App\Filament\Resources\StoreResource;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
@@ -12,20 +11,18 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
-use function Laravel\Prompts\form;
-
-class KycRelationManager extends RelationManager
+class StoreRelationManager extends RelationManager
 {
-    protected static string $relationship = 'kyc';
+    protected static string $relationship = 'storeRelatedTo';
 
     public function form(Form $form): Form
     {
-        return KycResource::form($form);
+        return StoreResource::form($form);
     }
 
     public function table(Table $table): Table
-    {
-        return KycResource::table($table)
+
+    {       return StoreResource::table($table)
 
             ->filters([
                 //
@@ -36,6 +33,11 @@ class KycRelationManager extends RelationManager
             ->actions([
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
+            ])
+            ->bulkActions([
+                Tables\Actions\BulkActionGroup::make([
+                    Tables\Actions\DeleteBulkAction::make(),
+                ]),
             ]);
     }
 }
