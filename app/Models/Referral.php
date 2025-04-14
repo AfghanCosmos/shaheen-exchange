@@ -21,4 +21,9 @@ class Referral extends Model
     {
         return $this->belongsTo(User::class, 'referred_user_id');
     }
+
+    public function currency()
+    {
+        return $this->belongsTo(Currency::class);
+    }
 }

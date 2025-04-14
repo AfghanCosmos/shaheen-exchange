@@ -51,7 +51,7 @@ class ViewHawla extends ViewRecord
                     ->icon('heroicon-o-currency-dollar')
                     ->action(fn ($record) => $record->pay())
                     ->requiresConfirmation()
-                    ->visible(fn ($record) => is_null($record->paid_at)),
+                    ->visible(fn ($record) => is_null($record->paid_at) && $record->status === 'in_progress'),
                   Action::make('cancel')
                             ->label('Cancel')
                             ->icon('heroicon-o-x-circle')

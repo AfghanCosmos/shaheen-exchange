@@ -35,6 +35,7 @@ return new class extends Migration {
             // New Additions
             $table->enum('user_type', ['admin', 'customer', 'vendor', 'agent'])->default('customer');
             $table->boolean('is_active')->default(true);
+            $table->foreignId('store_id')->nullable();
             $table->rememberToken();
             $table->timestamps();
             $table->softDeletes();

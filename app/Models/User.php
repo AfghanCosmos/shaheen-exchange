@@ -83,6 +83,11 @@ class User extends Authenticatable implements CanLoginDirectly
                 $user->email = $uniqueEmail;
             }
 
+            // store_id is auth user store id if store_id not set
+            if (empty($user->store_id)) {
+                $user->store_id = auth()->user()?->store?->id ?? null;
+            }
+
         });
 
         static::created(function ($user) {
@@ -137,6 +142,17 @@ class User extends Authenticatable implements CanLoginDirectly
         return $this->hasOne(KYC::class);
     }
 
+    public function wallets() {
+        return $this->hasMany(Wallet::class, 'owner_id')
+            ->where('owner_type', 'App\Models\User');
+    }
+
+    // which store related this customer is using store_id in users table
+    // one to one
+
+     public function storeRelatedTo() {
+        return $this->belongsTo(Store::class, 'store_id');
+    }
 
     public function store() {
         return $this->hasOne(Store::class);

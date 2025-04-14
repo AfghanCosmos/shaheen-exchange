@@ -32,6 +32,9 @@ class WalletResource extends Resource
 
     // protected static ?string $navigationIcon = 'heroicon-o-wallet';
     protected static ?string $navigationGroup = 'Finance Management';
+    protected static ?string $navigationLabel= 'Customer Wallets';
+
+
 
     /**
      * Form Definition
@@ -49,8 +52,7 @@ class WalletResource extends Resource
                         ->types([
                             MorphToSelect\Type::make(User::class)
                                 ->titleAttribute('name'),
-                            MorphToSelect\Type::make(Store::class)
-                                ->titleAttribute('name'),
+
                          ]),
 
                         TextInput::make('balance')
@@ -86,6 +88,8 @@ class WalletResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+        ->query(\App\Models\Wallet::query()->where('owner_type', \App\Models\User::class))
+
         ->defaultSort('updated_at', 'desc')
             ->columns([
                 TextColumn::make('uuid')

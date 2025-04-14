@@ -71,6 +71,13 @@ class CustomerResource extends Resource
             ->schema([
                 Section::make('User Information')
                     ->schema([
+                        // store_id
+                        Forms\Components\Select::make('store_id')
+                        ->relationship('storeRelatedTo', 'name')
+                        ->searchable(['name'])
+                            ->default(auth()->user()->store->id)
+                            ->visible(fn ($record) => auth()->user()->hasRole('super_admin'))
+                            ->columnSpanFull(),
                         Forms\Components\TextInput::make('name')
                             ->label('Full Name')
                             ->required()
@@ -265,9 +272,22 @@ class CustomerResource extends Resource
         ->modifyQueryUsing(fn(Builder $query) => $query->where('user_type', 'customer')->orderBy('created_at', 'desc'))
 
             ->columns([
+                Tables\Columns\TextColumn::make('uuid')
+                    ->label('User ID')
+                    ->sortable()
+                    ->searchable()
+                    ->toggleable(),
+
                 Tables\Columns\ImageColumn::make('image')
                     ->circular()
                     ->label('Profile Image'),
+
+                // storeRelatedTo
+                Tables\Columns\TextColumn::make('storeRelatedTo.name')
+                    ->label('Store Related To')
+                    ->sortable()
+                    ->searchable()
+                    ->toggleable(),
 
                 Tables\Columns\TextColumn::make('name')
                     ->sortable()
