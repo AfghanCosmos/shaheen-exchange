@@ -97,34 +97,37 @@ class LeaveResource extends Resource
         return $table
         ->defaultSort('created_at', 'desc')->
         columns([
-            TextColumn::make('user.name')
-                ->label('Employee')
+            /** 👤 Employee Name */
+            Tables\Columns\TextColumn::make('user.name')
+                ->label('👤 Employee')
                 ->sortable()
-                ->searchable(),
+                ->searchable()
+                ->badge()
+                ->color('info'),
 
-            TextColumn::make('leave_type')
-                ->label('Leave Type')
-                ->sortable(),
+            /** 🏷️ Leave Type */
+            Tables\Columns\TextColumn::make('leave_type')
+                ->label('🏷️ Leave Type')
+                ->sortable()
+                ->badge()
+                ->color('gray'),
 
-            TextColumn::make('start_date')
-                ->label('From')
-                ->sortable(),
+            /** 📅 Leave Start Date */
+            Tables\Columns\TextColumn::make('start_date')
+                ->label('📅 From')
+                ->sortable()
+                ->date('M d, Y'),
 
-            TextColumn::make('end_date')
-                ->label('To')
-                ->sortable(),
+            /** 📅 Leave End Date */
+            Tables\Columns\TextColumn::make('end_date')
+                ->label('📅 To')
+                ->sortable()
+                ->date('M d, Y'),
 
+            /** ✅ Approval Status (custom package column) */
             \EightyNine\Approvals\Tables\Columns\ApprovalStatusColumn::make("approvalStatus.status"),
-
-            // TextColumn::make('status')
-            //     ->badge()
-            //     ->colors([
-            //         'warning' => 'pending',
-            //         'success' => 'approved',
-            //         'danger' => 'rejected',
-            //     ])
-            //     ->sortable(),
-        ])->actions(
+        ])
+        ->actions(
                 ApprovalActions::make(
                     // define your action here that will appear once approval is completed
                     [
