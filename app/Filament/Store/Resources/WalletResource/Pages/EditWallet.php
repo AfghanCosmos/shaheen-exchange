@@ -10,10 +10,5 @@ class EditWallet extends EditRecord
 {
     protected static string $resource = WalletResource::class;
 
-    protected function getHeaderActions(): array
-    {
-        return [
-            Actions\DeleteAction::make(),
-        ];
-    }
+
 }

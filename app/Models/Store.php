@@ -242,3 +242,4 @@ public function hawlasReceived()
         ->where('status', 'completed');
 }
 }
+
