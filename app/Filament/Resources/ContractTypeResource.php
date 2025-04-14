@@ -14,62 +14,68 @@ use Illuminate\Database\Eloquent\Builder;
 class ContractTypeResource extends Resource
 {
     protected static ?string $model = ContractType::class;
-    protected static ?string $navigationLabel = 'Contract Type';
-    protected static ?string $label = 'Contract Type';
-    protected static ?string $pluralLabel = 'Contract Types';
 
-    protected static ?string $navigationGroup = 'Settings';
+    protected static ?string $navigationLabel = 'Contract Types';
+    protected static ?string $navigationGroup = "Settings";
 
+    protected static ?string $modelLabel = 'Contract Type';
+    protected static ?string $pluralModelLabel = 'Contract Types';
 
     public static function form(Form $form): Form
     {
-        return $form
-            ->schema([
-                Forms\Components\TextInput::make('name')
-                    ->label(__('Name'))
-                    ->required()
-                    ->maxLength(255),
-            ]);
+        return $form->schema([
+            Forms\Components\Section::make('📝 Contract Type Information')
+                ->description('Add or update a contract type.')
+                ->icon('heroicon-o-document-text')
+                ->schema([
+                    Forms\Components\TextInput::make('name')
+                        ->label('Contract Type Name')
+                        ->placeholder('e.g., Full-Time, Part-Time, Internship')
+                        ->required()
+                        ->maxLength(255)
+                        ->autofocus()
+                        ->prefixIcon('heroicon-o-pencil'),
+                ]),
+        ]);
     }
 
     public static function table(Table $table): Table
     {
         return $table
-        ->defaultSort('created_at', 'desc')
+            ->defaultSort('created_at', 'desc')
             ->columns([
                 Tables\Columns\TextColumn::make('name')
-                    ->label(__('Name'))
-                    ->searchable(),
+                    ->label('📄 Contract Type')
+                    ->searchable()
+                    ->sortable()
+                    ->icon('heroicon-o-document-text'),
 
                 Tables\Columns\TextColumn::make('created_at')
-                    ->label(__('Created At'))
-                    ->dateTime()
+                    ->label('📅 Created At')
+                    ->dateTime('F j, Y')
                     ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->toggleable(isToggledHiddenByDefault: true)
+                    ->icon('heroicon-o-calendar-days'),
 
                 Tables\Columns\TextColumn::make('updated_at')
-                    ->label(__('Updated At'))
-                    ->dateTime()
+                    ->label('🔄 Updated At')
+                    ->dateTime('F j, Y')
                     ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-            ])
-            ->filters([
-                // Define filters here if needed
+                    ->toggleable(isToggledHiddenByDefault: true)
+                    ->icon('heroicon-o-clock'),
             ])
             ->actions([
-                Tables\Actions\ViewAction::make(),
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\ViewAction::make()->label('👁️ View'),
+                Tables\Actions\EditAction::make()->label('✏️ Edit'),
             ])
             ->bulkActions([
-                Tables\Actions\DeleteBulkAction::make(),
+                Tables\Actions\DeleteBulkAction::make()->label('🗑️ Delete Selected'),
             ]);
     }
 
     public static function getRelations(): array
     {
-        return [
-            // Define related managers here if needed
-        ];
+        return [];
     }
 
     public static function getPages(): array
@@ -80,18 +86,5 @@ class ContractTypeResource extends Resource
             'view' => Pages\ViewContractType::route('/{record}'),
             'edit' => Pages\EditContractType::route('/{record}/edit'),
         ];
-    }
-
-
-
-
-    public static function getLabel(): ?string
-    {
-        return __('Contract Type');
-    }
-
-    public static function getPluralModelLabel(): string
-    {
-        return __('Contract Types');
     }
 }

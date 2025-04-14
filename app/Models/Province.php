@@ -15,15 +15,14 @@ class Province extends Model
     {
         return $this->belongsTo(Country::class);
     }
-    public function warehouses()
+
+    public function stores()
     {
-        return $this->hasMany(Warehouse::class);
+        return $this->hasMany(\App\Models\Store::class);
     }
 
-
-    // Relationship: A province has many workshops
-    public function workshops()
+    public function branches()
     {
-        return $this->hasMany(Workshop::class, 'province_id');
+        return $this->hasMany(\App\Models\Branch::class);
     }
 }

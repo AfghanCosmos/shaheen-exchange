@@ -7,143 +7,174 @@ use App\Models\Branch;
 use Carbon\Carbon;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Infolists\Infolist;
+use Filament\Infolists\Components\Section as InfoSection;
+use Filament\Infolists\Components\TextEntry;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Filament\Forms\Components\DatePicker;
-use Filament\Forms\Components\Textarea;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Select;
-use Filament\Tables\Columns\TextColumn;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class BranchResource extends Resource
 {
-    // Model Definition
     protected static ?string $model = Branch::class;
-
-    // Navigation Settings
-    // protected static ?string $navigationIcon = 'heroicon-o-building-library';
     protected static ?string $navigationGroup = "Settings";
 
-
     // ================================
-    // 🔹 FORM DEFINITION
+    // 🔹 FORM
     // ================================
     public static function form(Form $form): Form
     {
-        return $form
-            ->schema([
-                TextInput::make('name')
-                    ->label('Branch Name')
-                    ->placeholder('Enter branch name')
-                    ->required()
-                    ->maxLength(255),
+        return $form->schema([
+            Forms\Components\Section::make('🏢 Branch Details')
+                ->icon('heroicon-o-building-office')
+                ->columns(2)
+                ->schema([
+                    Forms\Components\TextInput::make('name')
+                        ->label('Branch Name')
+                        ->placeholder('Enter branch name')
+                        ->required()
+                        ->maxLength(255)
+                        ->autofocus()
+                        ->prefixIcon('heroicon-o-building-library'),
 
-                Select::make('province_id')
-                    ->label('Province')
-                    ->relationship('province', 'name')
-                    ->searchable()
-                    ->preload()
-                    ->required()
-                    ->createOptionForm([
-                        TextInput::make('name')
-                            ->label('Province Name')
-                            ->placeholder('Enter new province name')
-                            ->required()
-                            ->maxLength(255),
-                    ]),
+                    Forms\Components\Select::make('province_id')
+                        ->label('Province')
+                        ->relationship('province', 'name')
+                        ->searchable()
+                        ->preload()
+                        ->required()
+                        ->prefixIcon('heroicon-o-map-pin')
+                        ->placeholder('Select province')
+                        ->createOptionForm([
+                            Forms\Components\Select::make('country_id') // ✅ Add this
+                                ->label('Country')
+                                ->relationship('country', 'name') // assumes province belongsTo country
+                                ->required()
+                                ->searchable()
+                                ->preload()
+                                ->placeholder('Select a country'),
 
-                Select::make('manager_id')
-                    ->label('Manager')
-                    ->relationship('manager', 'name')
-                    ->searchable()
-                    ->preload()
-                    ->required()
-                    ->createOptionForm([
-                        TextInput::make('name')
-                            ->label('Manager Name')
-                            ->placeholder('Enter manager name')
-                            ->required()
-                            ->maxLength(255),
-                    ]),
+                            Forms\Components\TextInput::make('name')
+                                ->label('Province Name')
+                                ->placeholder('Enter new province name')
+                                ->required()
+                                ->maxLength(255),
+                        ]),
 
-                DatePicker::make('start_at')
-                    ->label('Start Date')
-                    ->default(Carbon::now())
-                    ->required(),
 
-                Textarea::make('full_address')
-                    ->label('Full Address')
-                    ->placeholder('Enter branch full address')
-                    ->required()
-                    ->columnSpanFull()
-                    ->maxLength(255),
-            ]);
+                    Forms\Components\Select::make('manager_id')
+                        ->label('Manager')
+                        ->relationship('manager', 'name')
+                        ->searchable()
+                        ->preload()
+                        ->required()
+                        ->prefixIcon('heroicon-o-user-circle'),
+
+                    Forms\Components\DatePicker::make('start_at')
+                        ->label('Start Date')
+                        ->default(Carbon::now())
+                        ->required()
+                        ->prefixIcon('heroicon-o-calendar'),
+
+                    Forms\Components\Textarea::make('full_address')
+                        ->label('Full Address')
+                        ->placeholder('Enter branch full address')
+                        ->required()
+                        ->columnSpanFull()
+                        ->maxLength(255),
+                ]),
+        ]);
     }
 
     // ================================
-    // 🔹 TABLE DEFINITION
+    // 🔹 TABLE
     // ================================
     public static function table(Table $table): Table
     {
         return $table
-        ->defaultSort('created_at', 'desc')
+            ->defaultSort('created_at', 'desc')
             ->columns([
-                TextColumn::make('name')
-                    ->label('Branch Name')
+                Tables\Columns\TextColumn::make('name')
+                    ->label('🏢 Branch Name')
                     ->sortable()
                     ->searchable(),
 
-                TextColumn::make('province.name')
-                    ->label('Province')
+                Tables\Columns\TextColumn::make('province.name')
+                    ->label('📍 Province')
                     ->sortable()
                     ->searchable(),
 
-                TextColumn::make('manager.name')
-                    ->label('Manager')
+                Tables\Columns\TextColumn::make('manager.name')
+                    ->label('👤 Manager')
                     ->sortable()
                     ->searchable(),
 
-                TextColumn::make('full_address')
-                    ->label('Full Address')
+                Tables\Columns\TextColumn::make('full_address')
+                    ->label('📌 Full Address')
+                    ->limit(20) // limits display to 15 characters
+                    ->tooltip(fn ($record) => $record->full_address) // shows full value on hover
                     ->searchable(),
 
-                TextColumn::make('start_at')
-                    ->label('Start Date')
+                Tables\Columns\TextColumn::make('start_at')
+                    ->label('📅 Start Date')
                     ->date()
                     ->sortable(),
 
-                TextColumn::make('created_at')
-                    ->label('Created At')
-                    ->dateTime()
+                Tables\Columns\TextColumn::make('created_at')
+                    ->label('🕒 Created At')
+                    ->dateTime('F j, Y')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
 
-                TextColumn::make('updated_at')
-                    ->label('Updated At')
-                    ->dateTime()
+                Tables\Columns\TextColumn::make('updated_at')
+                    ->label('🔄 Updated At')
+                    ->dateTime('F j, Y')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
-            ])
-            ->defaultSort('created_at', 'desc')
-            ->filters([
-
             ])
             ->actions([
                 Tables\Actions\ActionGroup::make([
-                    Tables\Actions\ViewAction::make(),
-                    Tables\Actions\EditAction::make(),
-                    Tables\Actions\DeleteAction::make(),
+                    Tables\Actions\ViewAction::make()->label('View'),
+                    Tables\Actions\EditAction::make()->label('Edit'),
+                    Tables\Actions\DeleteAction::make()->label('Delete'),
                 ]),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\ForceDeleteBulkAction::make(),
                     Tables\Actions\RestoreBulkAction::make(),
+                    Tables\Actions\ForceDeleteBulkAction::make(),
                 ]),
             ]);
+    }
+
+    // ================================
+    // 🔹 INFOLIST (View Page)
+    // ================================
+    public static function infolist(Infolist $infolist): Infolist
+    {
+        return $infolist->schema([
+            InfoSection::make('🏢 Branch Overview')
+                ->columns(2)
+                ->schema([
+                    TextEntry::make('name')->label('Branch Name')->icon('heroicon-o-building-library'),
+
+                    TextEntry::make('province.name')->label('Province')->icon('heroicon-o-map-pin'),
+
+                    TextEntry::make('manager.name')->label('Manager')->icon('heroicon-o-user-circle'),
+
+                    TextEntry::make('start_at')->label('Start Date')->date()->icon('heroicon-o-calendar'),
+
+                    TextEntry::make('created_at')->label('Created At')->dateTime()->icon('heroicon-o-calendar-days'),
+
+                    TextEntry::make('updated_at')->label('Updated At')->dateTime()->icon('heroicon-o-clock'),
+
+                    TextEntry::make('full_address')
+                        ->label('Full Address')
+                        ->columnSpanFull()
+                        ->icon('heroicon-o-map'),
+                ]),
+        ]);
     }
 
     // ================================

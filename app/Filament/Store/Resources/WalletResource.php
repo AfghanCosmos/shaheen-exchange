@@ -38,128 +38,160 @@ class WalletResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-        ->defaultSort('updated_at', 'desc')
+            ->defaultSort('updated_at', 'desc')
             ->columns([
+                /** 🆔 UUID */
                 TextColumn::make('uuid')
-                    ->label('UUID')
+                    ->label('🆔 UUID')
                     ->copyable()
+                    ->icon('heroicon-o-key')
+                    ->tooltip('Click to copy UUID')
                     ->sortable(),
 
+                /** 🧩 Owner Type */
                 TextColumn::make('owner_type')
-                    ->label('Owner Type')
-                    ->hiddenOn(WalletsRelationManager::class)
+                    ->label('👥 Owner Type')
+                    ->sortable()
+                    ->icon('heroicon-o-user-group')
+                    ->hiddenOn(WalletsRelationManager::class),
 
-                    ->sortable(),
-
+                /** 🔗 Owner Name */
                 TextColumn::make('owner.name')
-                    ->label('Owner ID')
-                       ->hiddenOn(WalletsRelationManager::class)
-                    ->sortable(),
+                    ->label('👤 Owner')
+                    ->sortable()
+                    ->icon('heroicon-o-user')
+                    ->hiddenOn(WalletsRelationManager::class),
 
+                /** 💰 Balance */
                 TextColumn::make('balance')
-                    ->label('Balance')
-                    ->sortable(),
+                    ->label('💰 Balance')
+                    ->sortable()
+                    ->icon('heroicon-o-banknotes')
+                    ->formatStateUsing(fn ($state) => number_format($state, 2)),
 
+                /** 💱 Currency */
                 TextColumn::make('currency.code')
-                    ->label('Currency')
-                    ->sortable(),
+                    ->label('💱 Currency')
+                    ->sortable()
+                    ->icon('heroicon-o-currency-dollar')
+                    ->formatStateUsing(fn ($state) => strtoupper($state)),
 
+                /** 📌 Status */
                 BadgeColumn::make('status')
+                    ->label('📌 Status')
+                    ->sortable()
+                    ->formatStateUsing(fn ($state) => ucfirst($state))
                     ->colors([
                         'success' => 'active',
                         'warning' => 'suspended',
                         'danger' => 'closed',
-                    ])
-                    ->sortable(),
+                    ]),
 
+                /** 📅 Created At */
                 TextColumn::make('created_at')
-                    ->label('Created At')
+                    ->label('📅 Created')
                     ->dateTime('F j, Y')
-                    ->sortable(),
+                    ->sortable()
+                    ->icon('heroicon-o-calendar-days'),
 
+                /** 🔄 Updated At */
                 TextColumn::make('updated_at')
-                    ->label('Updated At')
+                    ->label('🔄 Updated')
                     ->dateTime('F j, Y')
-                    ->sortable(),
+                    ->sortable()
+                    ->icon('heroicon-o-clock'),
             ])
             ->filters([
                 SelectFilter::make('status')
-                    ->label('Status')
+                    ->label('📌 Filter by Status')
                     ->options([
                         'active' => 'Active',
                         'suspended' => 'Suspended',
                         'closed' => 'Closed',
-                    ]),
+                    ])
+                    ->indicator('Status'),
             ]);
     }
+
 
     public static function infolist(Infolist $infolist): Infolist
     {
         return $infolist->schema([
-            Section::make(__('Wallet Information'))
+            /** 🏦 Wallet Information */
+            Section::make('💼 Wallet Information')
                 ->columns(3)
                 ->schema([
                     TextEntry::make('uuid')
-                        ->label(__('Wallet UUID'))
-                        ->copyable(),
-
-                    TextEntry::make('owner_type')
-                        ->label(__('Owner Type')),
+                        ->label('🆔 Wallet UUID')
+                        ->copyable()
+                        ->tooltip('Click to copy UUID')
+                        ->icon('heroicon-o-key'),
 
                     TextEntry::make('owner.name')
-                        ->label(__('Owner Name')),
+                        ->label('👤 Owner Name')
+                        ->icon('heroicon-o-user'),
 
                     TextEntry::make('currency.code')
-                        ->label(__('Currency')),
+                        ->label('💱 Currency')
+                        ->icon('heroicon-o-currency-dollar')
+                        ->badge()
+                        ->color('gray')
+                        ->formatStateUsing(fn ($state) => strtoupper($state)),
 
                     TextEntry::make('balance')
-                        ->label(__('Balance'))
+                        ->label('💰 Balance')
+                        ->icon('heroicon-o-banknotes')
                         ->money(fn ($record) => $record->currency?->code ?? 'USD'),
                 ]),
 
-            Section::make(__('Metadata'))
+            /** 🕒 Metadata */
+            Section::make('📅 Metadata')
                 ->columns(2)
                 ->collapsed()
                 ->schema([
                     TextEntry::make('created_at')
-                        ->label(__('Created At'))
-                        ->dateTime(),
+                        ->label('📅 Created At')
+                        ->icon('heroicon-o-calendar-days')
+                        ->dateTime('F j, Y h:i A'),
 
                     TextEntry::make('updated_at')
-                        ->label(__('Updated At'))
-                        ->dateTime(),
+                        ->label('🔄 Updated At')
+                        ->icon('heroicon-o-clock')
+                        ->dateTime('F j, Y h:i A'),
                 ]),
 
-            Section::make(__('Latest Hawla Transactions'))
+            /** 🔄 Latest Hawla Transactions */
+            Section::make('🔄 Latest Hawla Transactions')
                 ->columns(1)
                 ->collapsed()
                 ->schema([
                     RepeatableEntry::make('hawlasAsSender')
-                        ->label(__('Sent Hawlas'))
+                        ->label('📤 Sent Hawlas')
                         ->hidden(fn ($record) => $record->owner_type !== \App\Models\Store::class)
+                        ->columns(3)
                         ->schema([
-                            TextEntry::make('uuid')->label('Hawla Code'),
-                            TextEntry::make('hawlaType.name')->label('Type'),
-                            TextEntry::make('receiverStore.name')->label('Receiver Store'),
-                            TextEntry::make('givenCurrency.code')->label('Currency'),
-                            TextEntry::make('created_at')->label('Date')->dateTime(),
-                        ])
-                        ->columns(3),
+                            TextEntry::make('uuid')->label('🧾 Hawla Code')->copyable(),
+                            TextEntry::make('hawlaType.name')->label('🔖 Type')->badge()->color('info'),
+                            TextEntry::make('receiverStore.name')->label('🏪 Receiver Store'),
+                            TextEntry::make('givenCurrency.code')->label('💱 Currency')->badge()->color('gray'),
+                            TextEntry::make('created_at')->label('📅 Date')->dateTime('F j, Y'),
+                        ]),
 
                     RepeatableEntry::make('hawlasAsReceiver')
-                        ->label(__('Received Hawlas'))
+                        ->label('📥 Received Hawlas')
                         ->hidden(fn ($record) => $record->owner_type !== \App\Models\Store::class)
+                        ->columns(3)
                         ->schema([
-                            TextEntry::make('uuid')->label('Hawla Code'),
-                            TextEntry::make('hawlaType.name')->label('Type'),
-                            TextEntry::make('senderStore.name')->label('Sender Store'),
-                            TextEntry::make('receivingCurrency.code')->label('Currency'),
-                            TextEntry::make('created_at')->label('Date')->dateTime(),
-                        ])
-                        ->columns(3),
+                            TextEntry::make('uuid')->label('🧾 Hawla Code')->copyable(),
+                            TextEntry::make('hawlaType.name')->label('🔖 Type')->badge()->color('info'),
+                            TextEntry::make('senderStore.name')->label('🏪 Sender Store'),
+                            TextEntry::make('receivingCurrency.code')->label('💱 Currency')->badge()->color('gray'),
+                            TextEntry::make('created_at')->label('📅 Date')->dateTime('F j, Y'),
+                        ]),
                 ]),
         ]);
     }
+
 
 
     public static function getRelations(): array
@@ -176,8 +208,6 @@ class WalletResource extends Resource
     {
         return [
             'index' => Pages\ListWallets::route('/'),
-            'create' => Pages\CreateWallet::route('/create'),
-            'edit' => Pages\EditWallet::route('/{record}/edit'),
             'view' => Pages\ViewWallet::route('/{record}'),
         ];
     }
