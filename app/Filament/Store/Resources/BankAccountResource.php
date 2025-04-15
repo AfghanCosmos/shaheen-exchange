@@ -21,6 +21,8 @@ use Filament\Tables\Table;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\BadgeColumn;
 use Filament\Tables\Filters\SelectFilter;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Auth;
 
 class BankAccountResource extends Resource
 {
@@ -42,6 +44,20 @@ class BankAccountResource extends Resource
             ->description('Provide the name of the bank and account holder.')
             ->schema([
                 Grid::make(2)->schema([
+                Select::make('user_id')
+                    ->label('👤 User')
+                    ->options(function () {
+                        $storeId = Auth::user()?->store->id;
+
+                        return \App\Models\User::where('store_id', $storeId)
+                            ->pluck('name', 'id');
+                    })
+                    ->searchable()
+                    ->preload()
+                    ->required()
+                    ->columnSpanFull()
+                    ->placeholder('Select user'),
+
                     TextInput::make('bank_name')
                         ->label('🏛️ Bank Name')
                         ->prefixIcon('heroicon-o-banknotes')
@@ -85,8 +101,7 @@ class BankAccountResource extends Resource
                         ->prefixIcon('heroicon-o-finger-print')
                         ->maxLength(11)
                         ->placeholder('e.g., AFZNKBLKXXX')
-                        ->nullable()
-                        ->hint('Used for international transfers'),
+                        ->nullable(),
                 ]),
             ]),
 
@@ -136,6 +151,7 @@ class BankAccountResource extends Resource
     {
         return $table
         ->defaultSort('created_at', 'desc')
+        ->modifyQueryUsing(fn (Builder $query) => $query->whereHas('user', fn ($q) => $q->where('store_id', auth()->user()?->store?->id)))
         ->columns([
             /** 👤 User */
             TextColumn::make('user.name')

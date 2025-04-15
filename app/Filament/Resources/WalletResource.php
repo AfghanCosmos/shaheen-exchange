@@ -52,7 +52,6 @@ class WalletResource extends Resource
                         ->types([
                             MorphToSelect\Type::make(User::class)
                                 ->titleAttribute('name'),
-
                          ]),
 
                         TextInput::make('balance')
@@ -89,7 +88,6 @@ class WalletResource extends Resource
     {
         return $table
         ->query(\App\Models\Wallet::query()->where('owner_type', \App\Models\User::class))
-
         ->defaultSort('updated_at', 'desc')
             ->columns([
                 TextColumn::make('uuid')
