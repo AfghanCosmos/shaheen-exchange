@@ -199,11 +199,11 @@ class CustomerResource extends Resource
                     ->columns(3),
 
 
-    Repeater::make('banks')
-    ->relationship('banks')
-    ->columnSpanFull()
-        ->schema([
-        Section::make('Bank Account Details')
+            Repeater::make('banks')
+            ->relationship('banks')
+            ->columnSpanFull()
+                ->schema([
+            Section::make('Bank Account Details')
                     ->schema([
 
 
