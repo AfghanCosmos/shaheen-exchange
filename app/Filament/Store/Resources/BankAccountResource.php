@@ -42,18 +42,6 @@ class BankAccountResource extends Resource
             ->description('Provide the name of the bank and account holder.')
             ->schema([
                 Grid::make(2)->schema([
-                    Select::make('user_id')
-                    ->label('👤 User')
-                    ->relationship('user', 'name', function ($query) {
-                        $query->where('user_type', 'customer')
-                              ->where('store_id', auth()->user()->store->id);
-                    })
-                    ->searchable()
-                    ->preload()
-                    ->columnSpanFull()
-                    ->required()
-                    ->placeholder('Select user'),
-
                     TextInput::make('bank_name')
                         ->label('🏛️ Bank Name')
                         ->prefixIcon('heroicon-o-banknotes')
@@ -75,7 +63,7 @@ class BankAccountResource extends Resource
             ->icon('heroicon-o-hashtag')
             ->description('Details for identifying the account.')
             ->schema([
-                Grid::make(2)->schema([
+                Grid::make(3)->schema([
                     TextInput::make('account_number')
                         ->label('🔢 Account Number')
                         ->prefixIcon('heroicon-o-hashtag')
@@ -107,7 +95,7 @@ class BankAccountResource extends Resource
             ->icon('heroicon-o-cog')
             ->description('Choose currency, status, and account priority.')
             ->schema([
-                Grid::make(2)->schema([
+                Grid::make(3)->schema([
                     Select::make('currency_id')
                         ->label('💱 Currency')
                         ->prefixIcon('heroicon-o-currency-dollar')
@@ -148,10 +136,6 @@ class BankAccountResource extends Resource
     {
         return $table
         ->defaultSort('created_at', 'desc')
-        ->modifyQueryUsing(fn ($query) => $query->whereHas('user', function ($query) {
-            $query->where('store_id', auth()->user()->store->id);
-        }))
-
         ->columns([
             /** 👤 User */
             TextColumn::make('user.name')

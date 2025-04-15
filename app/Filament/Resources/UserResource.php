@@ -139,12 +139,12 @@ class UserResource extends Resource
                             ->columnSpanFull()
                             ->default(true),
 
-                            Forms\Components\CheckboxList::make('roles')
-    ->relationship('roles', 'name')
-    ->columnSpanFull()
-    ->searchable(),
-                    ])
-                    ->columns(3)
+                        Forms\Components\CheckboxList::make('roles')
+                            ->relationship('roles', 'name')
+                            ->columnSpanFull()
+                            ->searchable(),
+                    ]) ->columns(3)
+                    ]),
             ]);
     }
 
