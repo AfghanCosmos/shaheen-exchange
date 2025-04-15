@@ -18,14 +18,5 @@ class Customer extends Model
         return $this->belongsTo(Branch::class, 'branch_id');
     }
 
-    public function workshopOrders()
-    {
-        return $this->hasMany(WorkOrder::class);
-    }
 
-
-    public function sales()
-    {
-        return $this->hasMany(Sale::class);
-    }
 }

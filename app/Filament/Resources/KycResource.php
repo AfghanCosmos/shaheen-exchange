@@ -4,6 +4,11 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\KycResource\Pages;
 use App\Models\KYC;
+
+use Filament\Infolists\Infolist;
+use Filament\Infolists\Components\TextEntry;
+use Filament\Infolists\Components\Section as InfolistSection;
+
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Forms\Components\Section;
@@ -33,79 +38,89 @@ class KycResource extends Resource
      */
     public static function form(Form $form): Form
     {
-        return $form
-            ->schema([
-                Section::make('User Information')
-                    ->schema([
-                        Select::make('user_id')
-                            ->label('User')
-                            ->relationship('user', 'name')
-                            ->required()
-                            ->searchable()
-                            ->preload(),
+        return $form->schema([
+            /** 👤 User Information */
+            Section::make('👤 User Information')
+                ->description('Select the user and enter their ID details.')
+                ->columns(3)
+                ->schema([
+                    Select::make('user_id')
+                        ->label('🙋 User')
+                        ->relationship('user', 'name')
+                        ->required()
+                        ->searchable()
+                        ->preload(),
 
-                        TextInput::make('govt_id_type')
-                            ->label('Government ID Type')
-                            ->maxLength(255)
-                            ->placeholder('e.g., Passport, Driver’s License'),
+                    TextInput::make('govt_id_type')
+                        ->label('📘 ID Type')
+                        ->placeholder('e.g., Passport, Driver’s License')
+                        ->maxLength(255)
+                        ->required(),
 
-                        TextInput::make('govt_id_number')
-                            ->label('Government ID Number')
-                            ->maxLength(255)
-                            ->unique('k_y_c_s', 'govt_id_number', ignoreRecord: true)
-                            ->placeholder('Enter ID Number'),
-                    ])->columns(3),
+                    TextInput::make('govt_id_number')
+                        ->label('🆔 ID Number')
+                        ->placeholder('Enter ID Number')
+                        ->maxLength(255)
+                        ->required()
+                        ->unique('k_y_c_s', 'govt_id_number', ignoreRecord: true),
+                ]),
 
-                Section::make('Document Details')
-                    ->schema([
+            /** 📁 Document Details */
+            Section::make('📁 Document Details')
+                ->description('Upload the ID document and enter its issue/expiry dates.')
+                ->columns(2)
+                ->schema([
+                    DatePicker::make('issue_date')
+                        ->label('📅 Issue Date')
+                        ->required(),
 
-                        DatePicker::make('issue_date')
-                            ->label('Issue Date')
-                            ->required(),
+                    DatePicker::make('expire_date')
+                        ->label('📅 Expiry Date')
+                        ->after('issue_date')
+                        ->required(),
 
-                        DatePicker::make('expire_date')
-                            ->label('Expiry Date')
-                            ->after('issue_date'), // Ensures expiry date is after issue date
+                    FileUpload::make('govt_id_file')
+                        ->label('🗂️ Government ID File')
+                        ->directory('kyc_documents')
+                        ->preserveFilenames()
+                        ->imageEditor()
+                        ->enableDownload()
+                        ->maxSize(2048)
+                        ->acceptedFileTypes(['image/jpeg', 'image/png', 'application/pdf'])
+                        ->visibility('public')
+                        ->required()
+                        ->columnSpanFull(),
+                ]),
 
-                        Forms\Components\FileUpload::make('govt_id_file')
-                            ->label('Government ID File')
-                            ->directory('kyc_documents')
-                            ->preserveFilenames()
-                            ->required()
-                            ->imageEditor()
-                            ->enableDownload()
-                            ->maxSize(2048)
-                            ->columnSpanFull()
-                            ->acceptedFileTypes(['image/jpeg', 'image/png', 'application/pdf'])
-                            ->visibility('public'), // Ensure uploaded files are accessible
-                    ])->columns(2),
+            /** 📊 Status & Response */
+            Section::make('📊 Status & Review')
+                ->columns(2)
+                ->schema([
+                    Select::make('status')
+                        ->label('🔍 KYC Status')
+                        ->options([
+                            'pending' => 'Pending',
+                            'verified' => 'Verified',
+                            'rejected' => 'Rejected',
+                        ])
+                        ->default('pending')
+                        ->native(false)
+                        ->required(),
 
-                Section::make('Status & Responses')
-                    ->schema([
-                        Select::make('status')
-                            ->label('Status')
-                            ->native(false)
-                            ->options([
-                                'pending' => 'Pending',
-                                'verified' => 'Verified',
-                                'rejected' => 'Rejected',
-                            ])
-                            ->default('pending')
-                            ->required(),
+                    Textarea::make('rejection_reason')
+                        ->label('🚫 Rejection Reason')
+                        ->placeholder('Reason for rejection (required if status is Rejected)')
+                        ->visible(fn ($get) => $get('status') === 'rejected')
+                        ->columnSpanFull(),
 
-                        Textarea::make('rejection_reason')
-                            ->label('Rejection Reason')
-                            ->placeholder('Provide a reason for rejection (if applicable)')
-                            ->columnSpanFull()
-                            ->visible(fn ($get) => $get('status') === 'rejected'),
-
-                        Textarea::make('third_party_response')
-                            ->label('Third-Party Response')
-                            ->placeholder('Details from third-party verification (if applicable)')
-                            ->columnSpanFull(),
-                    ]),
-            ]);
+                    Textarea::make('third_party_response')
+                        ->label('📤 Third-Party Response')
+                        ->placeholder('Optional notes from third-party verification tools')
+                        ->columnSpanFull(),
+                ]),
+        ]);
     }
+
 
     /**
      * Table Definition
@@ -113,68 +128,69 @@ class KycResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-        ->defaultSort('created_at', 'desc')
+            ->defaultSort('created_at', 'desc')
             ->columns([
                 TextColumn::make('user.name')
-                    ->label('User')
-                    ->sortable()
+                    ->label('👤 User')
                     ->searchable()
+                    ->sortable()
                     ->limit(20),
 
                 TextColumn::make('govt_id_type')
-                    ->label('ID Type')
+                    ->label('📘 ID Type')
                     ->sortable()
                     ->limit(20),
 
                 TextColumn::make('govt_id_number')
-                    ->label('ID Number')
-                    ->limit(20)
-                    ->searchable(),
+                    ->label('🆔 ID Number')
+                    ->searchable()
+                    ->limit(20),
 
                 IconColumn::make('govt_id_file')
-                    ->label('ID Document')
-                    ->icon('heroicon-o-document-text')
-                    ->url(fn ($record) => Storage::url($record->govt_id_file), true)
-                    ->tooltip('Download Document'),
+                    ->label('📄 Document')
+                    ->icon('heroicon-o-document-arrow-down')
+                    ->tooltip('View/Download ID Document')
+                    ->url(fn ($record) => \Storage::url($record->govt_id_file), true),
 
                 TextColumn::make('issue_date')
-                    ->label('Issue Date')
+                    ->label('📅 Issued')
                     ->date()
                     ->sortable(),
 
                 TextColumn::make('expire_date')
-                    ->label('Expiry Date')
+                    ->label('📅 Expires')
                     ->date()
                     ->sortable(),
 
                 BadgeColumn::make('status')
+                    ->label('📌 Status')
                     ->colors([
                         'warning' => 'pending',
                         'success' => 'verified',
                         'danger' => 'rejected',
                     ])
                     ->sortable()
-                    ->label('Status'),
+                    ->formatStateUsing(fn ($state) => ucfirst($state)),
 
                 TextColumn::make('created_at')
-                    ->label('Created At')
-                    ->dateTime()
+                    ->label('📅 Created')
+                    ->dateTime('M d, Y H:i')
                     ->sortable(),
 
                 TextColumn::make('updated_at')
-                    ->label('Updated At')
-                    ->dateTime()
+                    ->label('🔄 Updated')
+                    ->dateTime('M d, Y H:i')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 SelectFilter::make('status')
+                    ->label('📌 Filter by Status')
                     ->options([
                         'pending' => 'Pending',
                         'verified' => 'Verified',
                         'rejected' => 'Rejected',
                     ])
-                    ->label('Status Filter')
                     ->placeholder('All Statuses'),
             ])
             ->actions([
@@ -185,6 +201,43 @@ class KycResource extends Resource
                 Tables\Actions\DeleteBulkAction::make(),
             ]);
     }
+
+    public static function infolist(Infolist $infolist): Infolist
+    {
+        return $infolist->schema([
+            InfolistSection::make('👤 User & ID Info')
+                ->columns(3)
+                ->schema([
+                    TextEntry::make('user.name')->label('User'),
+                    TextEntry::make('govt_id_type')->label('ID Type'),
+                    TextEntry::make('govt_id_number')->label('ID Number'),
+                    TextEntry::make('issue_date')->label('Issued On')->date(),
+                    TextEntry::make('expire_date')->label('Expires On')->date(),
+                    TextEntry::make('status')->label('Status')->badge()->color(fn ($state) => match ($state) {
+                        'pending' => 'warning',
+                        'verified' => 'success',
+                        'rejected' => 'danger',
+                    }),
+                ]),
+
+            InfolistSection::make('📄 Document')
+                ->schema([
+                    TextEntry::make('govt_id_file')
+                        ->label('Download Document')
+                        ->url(fn ($record) => \Storage::url($record->govt_id_file), true)
+                        ->icon('heroicon-o-document-arrow-down'),
+                ]),
+
+            InfolistSection::make('📤 Third-Party & Notes')
+                ->collapsed()
+                ->schema([
+                    TextEntry::make('third_party_response')->visible(fn ($state) => filled($state)),
+                    TextEntry::make('rejection_reason')->visible(fn ($state) => filled($state)),
+                ]),
+        ]);
+    }
+
+
 
     /**
      * Relations
