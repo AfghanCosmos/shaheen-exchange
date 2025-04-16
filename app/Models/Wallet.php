@@ -61,6 +61,14 @@ class Wallet extends Model
         return $this->morphTo();
     }
 
+
+
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'owner_id')->where('owner_type', User::class);
+    }
+
+
     public function currency()
     {
         return $this->belongsTo(Currency::class);

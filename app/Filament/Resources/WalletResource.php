@@ -48,12 +48,8 @@ class WalletResource extends Resource
                         ->label('👤 Wallet Owner')
                         ->types([
                             MorphToSelect\Type::make(User::class)
-                                ->titleAttribute('name')
-                                ->label('Customer'),
-                        ])
-                        ->required()
-                        ->hiddenOn(\App\Filament\Resources\StoreResource\RelationManagers\WalletsRelationManager::class)
-                        ->columnSpanFull(),
+                                ->titleAttribute('name'),
+                         ]),
 
                     TextInput::make('balance')
                         ->label('💰 Balance')
@@ -88,11 +84,8 @@ class WalletResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->query(
-                Wallet::query()
-                    ->where('owner_type', User::class)
-            )
-            ->defaultSort('updated_at', 'desc')
+        ->query(\App\Models\Wallet::query()->where('owner_type', \App\Models\User::class))
+        ->defaultSort('updated_at', 'desc')
             ->columns([
                 TextColumn::make('uuid')
                     ->label('🆔 UUID')
