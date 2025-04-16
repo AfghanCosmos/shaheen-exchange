@@ -5,6 +5,8 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\CustomerResource\Pages;
 use App\Filament\Resources\CustomerResource\RelationManagers;
 use App\Filament\Resources\CustomerResource\RelationManagers\BanksRelationManager;
+use App\Filament\Resources\CustomerResource\RelationManagers\StoreRelatedToRelationManager;
+use App\Filament\Resources\CustomerResource\RelationManagers\WalletsRelationManager;
 use App\Models\User;
 use Carbon\Carbon;
 use Filament\Forms;
@@ -72,7 +74,7 @@ class CustomerResource extends Resource
             Section::make('👤 User Information')
                 ->description('Personal and contact information.')
                 ->icon('heroicon-o-user-circle')
-                ->columns(2)
+                ->columns(3)
                 ->schema([
                     Select::make('store_id')
                         ->label('🏪 Store')
@@ -352,6 +354,8 @@ class CustomerResource extends Resource
     public static function getRelations(): array
     {
         return [
+            WalletsRelationManager::class,
+            StoreRelatedToRelationManager::class,
         ];
     }
 

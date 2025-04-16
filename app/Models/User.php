@@ -160,14 +160,12 @@ class User extends Authenticatable implements CanLoginDirectly
 
     public function banks()
     {
-        return $this->hasMany(BankAccount::class, 'user_id')
-          ; // 👈 Filter only customer accounts
+        return $this->hasMany(BankAccount::class, 'user_id'); // 👈 Filter only customer accounts
     }
 
     public function createdHawlas()
     {
-        return $this->hasMany(Hawla::class, 'created_by')
-          ; // 👈 Filter only customer accounts
+        return $this->hasMany(Hawla::class, 'created_by'); // 👈 Filter only customer accounts
     }
 
 

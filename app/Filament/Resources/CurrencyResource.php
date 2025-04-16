@@ -26,34 +26,64 @@ class CurrencyResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('code')
-                    ->required()
-                    ->placeholder('AF')
-                    ->maxLength(3),
-                Forms\Components\TextInput::make('name')
-                    ->required()
-                    ->placeholder('Afghani')
-                    ->maxLength(255),
+
+                // Currency Information Section with Icon
+                Forms\Components\Section::make('💱 Currency Information')
+                    ->description('Enter the details of the currency below')
+                    ->schema([
+                        Forms\Components\TextInput::make('code')
+                            ->required()
+                            ->placeholder('AF')
+                            ->maxLength(3)
+                            ->label('🌍 Currency Code')  // Added emoji for Currency Code
+                            ->helperText('The 3-letter code for the currency (e.g., USD, EUR, AF).'),
+
+                        Forms\Components\TextInput::make('name')
+                            ->required()
+                            ->placeholder('Afghani')
+                            ->maxLength(255)
+                            ->label('💰 Currency Name')  // Added emoji for Currency Name
+                            ->helperText('The full name of the currency (e.g., Afghani, Dollar).'),
+                    ])
+                    ->columns(1),
             ]);
     }
+
 
     public static function table(Table $table): Table
     {
         return $table
         ->defaultSort('created_at', 'desc')
             ->columns([
+                 // Currency Code Column with Emoji
                 Tables\Columns\TextColumn::make('code')
-                    ->searchable(),
+                    ->label('🌍 Currency Code')  // Added emoji for Currency Code
+                    ->sortable()
+                    ->searchable()
+                    ->tooltip('Currency Code'),
+
+                // Currency Name Column with Emoji
                 Tables\Columns\TextColumn::make('name')
-                    ->searchable(),
+                    ->label('💰 Currency Name')  // Added emoji for Currency Name
+                    ->sortable()
+                    ->searchable()
+                    ->tooltip('Currency Name'),
+
+                // Created At Column with Emoji and Tooltip
                 Tables\Columns\TextColumn::make('created_at')
-                    ->dateTime()
+                    ->label('📅 Created At')  // Added emoji for Created At
+                    ->dateTime('F j, Y')
                     ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->toggleable(isToggledHiddenByDefault: true)
+                    ->tooltip('Date the currency was created'),
+
+                // Updated At Column with Emoji and Tooltip
                 Tables\Columns\TextColumn::make('updated_at')
-                    ->dateTime()
+                    ->label('🔄 Updated At')  // Added emoji for Updated At
+                    ->dateTime('F j, Y')
                     ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->toggleable(isToggledHiddenByDefault: true)
+                    ->tooltip('Date the currency was last updated'),
             ])
             ->filters([
                 //

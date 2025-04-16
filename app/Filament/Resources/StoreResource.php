@@ -9,6 +9,10 @@ use App\Filament\Resources\StoreResource\RelationManagers\WalletsRelationManager
 use App\Filament\Resources\StoreResource\RelationManagers\StoreCommissionRangesRelationManager;
 use App\Filament\Resources\StoreResource\RelationManagers\StoreCommissionsRelationManager;
 use Filament\Infolists\Components\RepeatableEntry;
+use Filament\Forms\Components\TextArea;
+use Filament\Forms\Components\TimePicker;
+use Filament\Forms\Components\Toggle;
+
 
 use App\Models\Hawla;
 use App\Models\Store;
@@ -27,6 +31,9 @@ use Filament\Forms\Form;
 use Filament\Infolists\Components\IconEntry;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Columns\BadgeColumn;
+use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
@@ -42,97 +49,94 @@ class StoreResource extends Resource
     {
         return $form
             ->schema([
-                // Store Information
-                Forms\Components\Section::make('Store Information')
+                // Store Information with Emoji
+                Forms\Components\Section::make('🛍️ Store Information')
                     ->schema([
-                        Forms\Components\Select::make('user_id')
-                            ->label('User')
+                        Select::make('user_id')
+                            ->label('👤 User')
                             ->relationship('user', 'name')
                             ->searchable()
                             ->preload()
                             ->required()
-                    ->createOptionForm(fn(Form $form) => UserResource::form($form))
-
                             ->placeholder('Select a user'),
 
-                        Forms\Components\TextInput::make('name')
-                            ->label('Store Name')
+                        TextInput::make('name')
+                            ->label('🏪 Store Name')
                             ->required()
                             ->placeholder('Enter store name')
                             ->maxLength(255),
-                            Forms\Components\Select::make('country_id')
-                                ->label('Country')
-                                ->relationship('country', 'name')
-                                ->searchable()
-                                ->live()
-                                ->preload()
-                                ->required()
-                                ->placeholder('Select a country'),
-                            Forms\Components\Select::make('province_id')
-                                ->label('Province')
-                                ->options(function (callable $get) {
-                                    if ($country = $get('country_id')) {
-                                        return \App\Models\Province::where('country_id', $country)
-                                            ->pluck('name', 'id')
-                                            ->toArray();
-                                    }
-                                    return [];
-                                })
-                                ->searchable()
-                                ->preload()
-                                ->required()
-                                ->placeholder('Select a province'),
 
+                        Select::make('country_id')
+                            ->label('🌍 Country')
+                            ->relationship('country', 'name')
+                            ->searchable()
+                            ->live()
+                            ->preload()
+                            ->required()
+                            ->placeholder('Select a country'),
+
+                        Select::make('province_id')
+                            ->label('📍 Province')
+                            ->options(function (callable $get) {
+                                if ($country = $get('country_id')) {
+                                    return \App\Models\Province::where('country_id', $country)
+                                        ->pluck('name', 'id')
+                                        ->toArray();
+                                }
+                                return [];
+                            })
+                            ->searchable()
+                            ->preload()
+                            ->required()
+                            ->placeholder('Select a province'),
                     ])
                     ->columns(2),
 
-                // Contact Information
-                Forms\Components\Section::make('Contact Information')
+                // Contact Information Section with Emojis
+                Forms\Components\Section::make('📞 Contact Information')
                     ->schema([
-                        Forms\Components\Textarea::make('address')
-                            ->label('Address')
+                        TextArea::make('address')
+                            ->label('🏠 Address')
                             ->required()
                             ->placeholder('e.g., 123 Main St, City, Province')
                             ->columnSpanFull(),
 
-
-
-                        Forms\Components\TextInput::make('latitude')
-                            ->label('Latitude')
+                        TextInput::make('latitude')
+                            ->label('📍 Latitude')
                             ->numeric()
                             ->nullable()
                             ->placeholder('e.g., 34.0522'),
 
-                        Forms\Components\TextInput::make('longitude')
-                            ->label('Longitude')
+                        TextInput::make('longitude')
+                            ->label('📍 Longitude')
                             ->numeric()
                             ->nullable()
                             ->placeholder('e.g., -118.2437'),
                     ])
                     ->columns(2),
 
-                // Store Timings
-                Forms\Components\Section::make('Store Timings')
+                // Store Timings Section with Emojis
+                Forms\Components\Section::make('⏰ Store Timings')
                     ->schema([
-                        Forms\Components\TimePicker::make('open_time')
-                            ->label('Opening Time')
+                        TimePicker::make('open_time')
+                            ->label('🕖 Opening Time')
                             ->placeholder('e.g., 08:00 AM'),
 
-                        Forms\Components\TimePicker::make('close_time')
-                            ->label('Closing Time')
+                        TimePicker::make('close_time')
+                            ->label('🕗 Closing Time')
                             ->placeholder('e.g., 08:00 PM'),
 
-                        Forms\Components\Toggle::make('is_closed')
-                            ->label('Is Closed?')
+                        Toggle::make('is_closed')
+                            ->label('🚫 Is Closed?')
                             ->required(),
                     ])
                     ->columns(2),
 
-                // Status Information
-                Forms\Components\Section::make('Status Information')
+                // Status Information Section with Emojis
+                Forms\Components\Section::make('🛑 Status Information')
                     ->schema([
-                        Forms\Components\Select::make('status')
-                            ->label('Status')
+                        Select::make('status')
+                            ->label('⚙️ Status')
                             ->options([
                                 'active' => 'Active',
                                 'inactive' => 'Inactive',
@@ -144,39 +148,40 @@ class StoreResource extends Resource
                     ])
                     ->columns(1),
 
-                    Repeater::make('Store Contact')
-                        ->relationship('storeContacts')
-                        ->columnSpanFull()
-                        ->schema([
-                            Section::make('Contact Information')
-                                ->schema([
-                                    Select::make('type')
-                                        ->label('Contact Type')
-                                        ->options([
-                                            'phone' => 'Phone',
-                                            'email' => 'Email',
-                                            'whatsapp' => 'WhatsApp',
-                                            'fax' => 'Fax',
-                                            'telegram' => 'Telegram',
-                                            'skype' => 'Skype',
-                                            'messenger' => 'Messenger',
-                                            'signal' => 'Signal',
-                                            'wechat' => 'WeChat',
-                                            'other' => 'Other',
-                                        ])
-                                        ->default('phone')
-                                        ->required(),
+                // Contacts Repeater with Emojis
+                Repeater::make('Store Contact')
+                    ->relationship('storeContacts')
+                    ->columnSpanFull()
+                    ->schema([
+                        Section::make('📱 Contact Information')
+                            ->schema([
+                                Select::make('type')
+                                    ->label('📡 Contact Type')
+                                    ->options([
+                                        'phone' => 'Phone',
+                                        'email' => 'Email',
+                                        'whatsapp' => 'WhatsApp',
+                                        'fax' => 'Fax',
+                                        'telegram' => 'Telegram',
+                                        'skype' => 'Skype',
+                                        'messenger' => 'Messenger',
+                                        'signal' => 'Signal',
+                                        'wechat' => 'WeChat',
+                                        'other' => 'Other',
+                                    ])
+                                    ->default('phone')
+                                    ->required(),
 
-                                    TextInput::make('contact_value')
-                                        ->label('Contact Details')
-                                        ->placeholder('e.g., +1 234 567 8901')
-                                        ->required()
-                                        ->maxLength(255),
-                                    ])->columns(2)
-                                ])
-        ]);
+                                TextInput::make('contact_value')
+                                    ->label('📞 Contact Details')
+                                    ->placeholder('e.g., +1 234 567 8901')
+                                    ->required()
+                                    ->maxLength(255),
+                            ])
+                            ->columns(2)
+                    ]),
+            ]);
     }
-
     /**
      * -------------------------
      *       TABLE SCHEMA
@@ -186,45 +191,62 @@ class StoreResource extends Resource
     {
         return $table
         ->defaultSort('created_at', 'desc')
-            ->columns([
-                Tables\Columns\TextColumn::make('uuid')
-                    ->label('UUID')
-                    ->searchable(),
+        ->columns([
+            TextColumn::make('uuid')
+                ->label('🔑 UUID')
+                ->searchable()
+                ->tooltip('Unique identifier for the store')  // Tooltip for extra context
+                ->sortable(),
 
-                Tables\Columns\TextColumn::make('user.name')
-                    ->label('User')
-                    ->sortable()
-                    ->searchable(),
+            TextColumn::make('user.name')
+                ->label('👤 User')
+                ->sortable()
+                ->searchable()
+                ->tooltip('Name of the user associated with the store')  // Tooltip for user details
+                ->wrap(),  // Wrap long names
 
-                Tables\Columns\TextColumn::make('name')
-                    ->label('Store Name')
-                    ->sortable()
-                    ->searchable(),
+            TextColumn::make('name')
+                ->label('🏪 Store Name')
+                ->sortable()
+                ->searchable()
+                ->tooltip('Name of the store')  // Tooltip for the store name
+                ->wrap(),  // Ensures long names wrap properly
 
-                Tables\Columns\TextColumn::make('province.name')
-                    ->label('Province')
-                    ->sortable()
-                    ->searchable(),
-                Tables\Columns\IconColumn::make('is_closed')
-                    ->label('Closed?')
-                    ->boolean(),
+            TextColumn::make('province.name')
+                ->label('📍 Province')
+                ->sortable()
+                ->searchable()
+                ->tooltip('Province where the store is located'),  // Tooltip for province details
 
-                Tables\Columns\TextColumn::make('status')
-                    ->badge()
-                    ->sortable(),
+            IconColumn::make('is_closed')
+                ->label('🚫 Closed?')
+                ->icon('heroicon-o-x-circle')  // Cross icon for closed stores
+                ->color('danger')  // Color the icon red for closed stores
+                ->boolean()  // Show a checkmark or cross
+                ->tooltip('Indicates whether the store is closed or not'),  // Tooltip for closed status
 
-                Tables\Columns\TextColumn::make('created_at')
-                    ->label('Created At')
-                    ->formatStateUsing(fn ($state) => Carbon::parse($state)->diffForHumans())
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+            BadgeColumn::make('status')
+                ->label('⚙️ Status')
+                ->sortable()
+                ->badge()
+                ->formatStateUsing(fn ($state) => ucfirst($state))  // Capitalize status (e.g., 'active' -> 'Active')
+                ->color(fn ($state) => $state === 'active' ? 'success' : ($state === 'inactive' ? 'danger' : 'warning'))  // Color badges
+                ->tooltip('Current status of the store'),  // Tooltip for status
 
-                Tables\Columns\TextColumn::make('updated_at')
-                    ->label('Updated At')
-                    ->formatStateUsing(fn ($state) => Carbon::parse($state)->diffForHumans())
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-            ])
+            TextColumn::make('created_at')
+                ->label('📅 Created At')
+                ->formatStateUsing(fn ($state) => Carbon::parse($state)->diffForHumans())  // Human-readable date format
+                ->sortable()
+                ->tooltip('Date when the store was created')  // Tooltip for creation date
+                ->toggleable(isToggledHiddenByDefault: true),  // Toggle visibility by default
+
+            TextColumn::make('updated_at')
+                ->label('🔄 Updated At')
+                ->formatStateUsing(fn ($state) => Carbon::parse($state)->diffForHumans())  // Human-readable date format
+                ->sortable()
+                ->tooltip('Date when the store was last updated')  // Tooltip for last updated date
+                ->toggleable(isToggledHiddenByDefault: true),  // Toggle visibility by default
+        ])
             ->filters([
                 Tables\Filters\TrashedFilter::make(),
             ])
