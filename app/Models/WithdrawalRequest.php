@@ -39,14 +39,15 @@ class WithdrawalRequest extends Model
         return $this->belongsTo(Currency::class);
     }
 
-    public function admin()
+    public function withdrawBy()
     {
-        return $this->belongsTo(User::class, 'admin_id');
+        return $this->belongsTo(User::class, 'withdraw_by')
+        ->where('user_type','!=' ,'customer');
     }
 
     public function wallet()
     {
-        return $this->belongsTo(Wallet::class, 'receiver_wallet_id');
+        return $this->belongsTo(Wallet::class, 'wallet_id');
     }
 
 }

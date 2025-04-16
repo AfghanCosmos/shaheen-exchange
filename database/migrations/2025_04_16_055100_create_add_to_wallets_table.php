@@ -11,17 +11,17 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('withdrawal_requests', function (Blueprint $table) {
+        Schema::create('add_to_wallets', function (Blueprint $table) {
             $table->id();
             $table->uuid('uuid')->unique();
-            $table->foreignId('wallet_id')->nullable()->constrained('wallets')->onDelete('cascade');
-            $table->string('receiver_name');
+            $table->morphs('owner'); // Morph for dynamic relationship (user or store)
+            $table->foreignId('currency_id');
+            $table->string('giver_name');
             $table->decimal('amount', 16, 2);
-            $table->string('receiver_verification_id');
             $table->enum('status', ['pending', 'approved', 'rejected', 'completed', 'failed'])->default('pending');
-            $table->foreignId('withdraw_by')->nullable()->constrained('users')->onDelete('set null');
+            $table->foreignId('add_by')->nullable()->constrained('users')->onDelete('set null');
             $table->timestamp('approved_at')->nullable();
-            $table->decimal('commission_amount', 16, 2);
+            $table->decimal('commission_amount', 16, 2)->default(0.0);
             $table->boolean('verified_by_store')->default(false);
             $table->text('details')->nullable();
             $table->timestamps();
@@ -34,6 +34,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('withdrawal_requests');
+        Schema::dropIfExists('add_to_wallets');
     }
 };
