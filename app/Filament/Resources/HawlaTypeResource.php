@@ -24,31 +24,56 @@ class HawlaTypeResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('name')
-                    ->required()
-                    ->columnSpanFull()
-                    ->maxLength(255),
+
+                // Section for Hawla Type Details
+                Forms\Components\Section::make('💡 Hawla Type Information')
+                    ->description('Enter the details for the Hawla Type.')
+                    ->schema([
+                        Forms\Components\TextInput::make('name')
+                            ->label('🏷️ Hawla Type Name') // Icon for Hawla Type
+                            ->required()
+                            ->columnSpanFull()
+                            ->maxLength(255)
+                            ->helperText('Provide a descriptive name for the Hawla type.')
+                            ->placeholder('e.g., Standard, Premium')
+                    ])
+                    ->columns(1), // Single column for better layout of the name field
+
             ]);
     }
+
 
     public static function table(Table $table): Table
     {
         return $table
-            ->columns([
-                Tables\Columns\TextColumn::make('name')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('created_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('updated_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-            ])
-            ->filters([
-                //
-            ])
+        ->columns([
+
+            // Name Column with Emoji
+            Tables\Columns\TextColumn::make('name')
+                ->label('🏷️ Hawla Type') // Emoji for Hawla Type
+                ->searchable()
+                ->tooltip('The name of the Hawla type'),
+
+            // Created At Column with Emoji
+            Tables\Columns\TextColumn::make('created_at')
+                ->label('📅 Created At') // Emoji for Created At
+                ->dateTime()
+                ->sortable()
+                ->toggleable(isToggledHiddenByDefault: true)
+                ->tooltip('Date when the Hawla type was created'),
+
+            // Updated At Column with Emoji
+            Tables\Columns\TextColumn::make('updated_at')
+                ->label('🔄 Updated At') // Emoji for Updated At
+                ->dateTime()
+                ->sortable()
+                ->toggleable(isToggledHiddenByDefault: true)
+                ->tooltip('Date when the Hawla type was last updated'),
+
+        ])
+        ->filters([
+
+        ])
             ->actions([
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),

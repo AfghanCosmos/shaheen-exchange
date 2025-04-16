@@ -20,108 +20,112 @@ class StoreCommissionResource extends Resource
 
     public static function form(Form $form): Form
     {
-        return $form
-            ->schema([
-                Forms\Components\Section::make('Store Commission Details')
-                    ->schema([
-                        Forms\Components\Select::make('store_id')
-                            ->label('Store')
-                            ->relationship('store', 'name')
-                            ->preload()
-                            ->searchable()
-                            ->native(false)
-                       ->hiddenOn(StoreCommissionsRelationManager::class)
-                            ->columnSpanFull()
-                            ->required()
-                            ->createOptionForm(fn(Form $form) => StoreResource::form($form))
-                            ->placeholder('Select a store...'),
+        return $form->schema([
+            Forms\Components\Section::make('💼 Store Commission Setup')
+                ->icon('heroicon-o-banknotes')
+                ->description('Configure a fixed or percentage-based commission for a store.')
+                ->columns(3)
+                ->schema([
 
-                        Forms\Components\Select::make('commission_type_id')
-                            ->label('Commission Type')
-                            ->relationship('commissionType', 'name')
-                            ->preload()
-                            ->searchable()
-                            ->native(false)
-                            ->required()
-                            ->createOptionForm(fn(Form $form) => CommissionTypeResource::form($form))
-                            ->placeholder('Select a type...'),
+                    Forms\Components\Select::make('store_id')
+                        ->label('🏪 Store')
+                        ->relationship('store', 'name')
+                        ->searchable()
+                        ->preload()
+                        ->required()
+                        ->native(false)
+                        ->hiddenOn(StoreCommissionsRelationManager::class)
+                        ->columnSpanFull()
+                        ->placeholder('Select a store...')
+                        ->createOptionForm(fn (Form $form) => StoreResource::form($form)),
 
-                        Forms\Components\Select::make('currency_id')
-                            ->label('Currency')
-                            ->relationship('currency', 'code')
-                            ->preload()
-                            ->searchable()
-                            ->native(false)
-                            ->required()
-                            ->createOptionForm(fn(Form $form) => CurrencyResource::form($form))
-                            ->placeholder('Select a currency...'),
+                    Forms\Components\Select::make('commission_type_id')
+                        ->label('📊 Commission Type')
+                        ->relationship('commissionType', 'name')
+                        ->searchable()
+                        ->preload()
+                        ->native(false)
+                        ->required()
+                        ->placeholder('Select a type...')
+                        ->createOptionForm(fn (Form $form) => CommissionTypeResource::form($form)),
 
-                        Forms\Components\TextInput::make('commission')
-                            ->label('Commission Rate')
-                            ->numeric()
-                            ->required()
-                            ->minValue(0)
-                            ->placeholder('Enter commission (e.g. 5, 10.5)')
-                            ,
+                    Forms\Components\Select::make('currency_id')
+                        ->label('💱 Currency')
+                        ->relationship('currency', 'code')
+                        ->searchable()
+                        ->preload()
+                        ->native(false)
+                        ->required()
+                        ->placeholder('Select a currency...')
+                        ->createOptionForm(fn (Form $form) => CurrencyResource::form($form)),
 
-                            Forms\Components\Toggle::make('is_fix')
-                                ->label('Is Fix')
-                                ->default(false),
+                    Forms\Components\TextInput::make('commission')
+                        ->label('💰 Commission Value')
+                        ->numeric()
+                        ->required()
+                        ->minValue(0)
+                        ->placeholder('e.g., 5 or 12.5'),
 
-
-                    ])
-                    ->columns(3),
-            ]);
+                    Forms\Components\Toggle::make('is_fix')
+                        ->label('📌 Fixed Amount')
+                        ->inline(false)
+                        ->default(false)
+                        ->helperText('Enable if the commission is a fixed value instead of a percentage.'),
+                ]),
+        ]);
     }
+
 
     public static function table(Table $table): Table
     {
         return $table
+            ->defaultSort('created_at', 'desc')
             ->columns([
                 Tables\Columns\TextColumn::make('store.name')
-                    ->label('Store')
-                    ->searchable()
+                    ->label('🏪 Store')
+                    ->tooltip(fn ($record) => $record->store?->name)
                     ->sortable()
-                    ->tooltip(fn ($record) => $record->store?->name),
+                    ->searchable(),
 
                 Tables\Columns\BadgeColumn::make('commissionType.name')
-                    ->label('Type')
-                    ->searchable()
+                    ->label('📊 Type')
                     ->sortable()
                     ->colors([
                         'info' => 'Percentage',
                         'success' => 'Fixed',
-                    ]),
+                    ])
+                    ->formatStateUsing(fn ($state) => ucfirst($state)),
 
                 Tables\Columns\BadgeColumn::make('currency.code')
-                    ->label('Currency')
-                    ->searchable()
+                    ->label('💱 Currency')
                     ->sortable()
                     ->colors([
                         'primary' => 'USD',
                         'warning' => 'EUR',
                         'danger' => 'AFN',
-                    ]),
-
+                        'gray' => null,
+                    ])
+                    ->formatStateUsing(fn ($state) => strtoupper($state)),
 
                 Tables\Columns\BooleanColumn::make('is_fix')
-                    ->label('Is Fix')
-                    ->trueIcon('heroicon-s-check-circle')
-                    ->falseIcon('heroicon-s-x-circle'),
+                    ->label('📌 Fixed?')
+                    ->trueIcon('heroicon-o-check-circle')
+                    ->falseIcon('heroicon-o-x-circle')
+                    ->alignCenter(),
 
                 Tables\Columns\TextColumn::make('commission')
-                    ->label('Commission')
+                    ->label('💰 Commission')
                     ->sortable()
-                    ->formatStateUsing(fn ($state) => number_format($state, 2)
-                ),
+                    ->formatStateUsing(fn ($state, $record) =>
+                        number_format($state, 2) . ($record->is_fix ? '' : ' %')
+                    ),
 
                 Tables\Columns\TextColumn::make('created_at')
-                    ->label('Created At')
+                    ->label('📅 Created')
                     ->sortable()
                     ->dateTime('d M Y, H:i')
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
-            ->defaultSort('created_at', 'desc')
             ->actions([
                 Tables\Actions\EditAction::make(),
             ])
@@ -131,6 +135,7 @@ class StoreCommissionResource extends Resource
                 ]),
             ]);
     }
+
 
     public static function getRelations(): array
     {

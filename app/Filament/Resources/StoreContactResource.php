@@ -28,43 +28,48 @@ class StoreContactResource extends Resource
      */
     public static function form(Form $form): Form
     {
-        return $form
-            ->schema([
-                Section::make('Contact Information')
-                    ->schema([
-                        Select::make('store_id')
-                            ->label('Store')
-                            ->relationship('store', 'name')
-                            ->required()
-                            ->searchable()
-                            ->preload(),
+        return $form->schema([
+            Section::make('📇 Contact Information')
+                ->description('Define a communication method for a store.')
+                ->icon('heroicon-o-phone')
+                ->columns(2)
+                ->schema([
+                    Select::make('store_id')
+                        ->label('🏪 Store')
+                        ->relationship('store', 'name')
+                        ->searchable()
+                        ->preload()
+                        ->required()
+                        ->placeholder('Select store'),
 
-                        Select::make('type')
-                            ->label('Contact Type')
-                            ->options([
-                                'phone' => 'Phone',
-                                'email' => 'Email',
-                                'whatsapp' => 'WhatsApp',
-                                'fax' => 'Fax',
-                                'telegram' => 'Telegram',
-                                'skype' => 'Skype',
-                                'messenger' => 'Messenger',
-                                'signal' => 'Signal',
-                                'wechat' => 'WeChat',
-                                'other' => 'Other',
-                            ])
-                            ->default('phone')
-                            ->required(),
+                    Select::make('type')
+                        ->label('📞 Contact Type')
+                        ->options([
+                            'phone' => 'Phone',
+                            'email' => 'Email',
+                            'whatsapp' => 'WhatsApp',
+                            'fax' => 'Fax',
+                            'telegram' => 'Telegram',
+                            'skype' => 'Skype',
+                            'messenger' => 'Messenger',
+                            'signal' => 'Signal',
+                            'wechat' => 'WeChat',
+                            'other' => 'Other',
+                        ])
+                        ->default('phone')
+                        ->native(false)
+                        ->required(),
 
-                        TextInput::make('contact_value')
-                            ->label('Contact Details')
-                            ->placeholder('e.g., +1 234 567 8901')
-                            ->required()
-                            ->maxLength(255),
-                    ])
-                    ->columns(2),
-            ]);
+                    TextInput::make('contact_value')
+                        ->label('💬 Contact Details')
+                        ->placeholder('e.g., +1 234 567 8901 or contact@store.com')
+                        ->required()
+                        ->maxLength(255)
+                        ->columnSpanFull(),
+                ]),
+        ]);
     }
+
 
     /**
      * Table Definition
@@ -72,14 +77,15 @@ class StoreContactResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-        ->defaultSort('created_at', 'desc')
+            ->defaultSort('created_at', 'desc')
             ->columns([
                 TextColumn::make('store.name')
-                    ->label('Store')
+                    ->label('🏪 Store')
                     ->sortable()
                     ->searchable(),
-
+    
                 BadgeColumn::make('type')
+                    ->label('📞 Type')
                     ->colors([
                         'primary' => 'phone',
                         'success' => 'email',
@@ -88,37 +94,42 @@ class StoreContactResource extends Resource
                         'danger' => 'fax',
                         'gray' => 'other',
                     ])
-                    ->label('Contact Type')
+                    ->formatStateUsing(fn($state) => ucfirst($state))
                     ->sortable(),
-
+    
                 TextColumn::make('contact_value')
-                    ->label('Contact Details')
+                    ->label('💬 Contact Info')
                     ->copyable()
-                    ->sortable()
-                    ->searchable(),
-
+                    ->searchable()
+                    ->sortable(),
+    
                 TextColumn::make('created_at')
-                    ->label('Created At')
+                    ->label('📅 Created')
                     ->dateTime('F j, Y')
                     ->sortable(),
-
+    
                 TextColumn::make('updated_at')
-                    ->label('Updated At')
+                    ->label('🔄 Updated')
                     ->dateTime('F j, Y')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 SelectFilter::make('type')
-                    ->label('Contact Type')
+                    ->label('Filter by Contact Type')
                     ->options([
                         'phone' => 'Phone',
                         'email' => 'Email',
                         'whatsapp' => 'WhatsApp',
                         'telegram' => 'Telegram',
                         'fax' => 'Fax',
+                        'skype' => 'Skype',
+                        'messenger' => 'Messenger',
+                        'signal' => 'Signal',
+                        'wechat' => 'WeChat',
                         'other' => 'Other',
-                    ]),
+                    ])
+                    ->placeholder('All types'),
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),
@@ -129,6 +140,7 @@ class StoreContactResource extends Resource
                 Tables\Actions\DeleteBulkAction::make(),
             ]);
     }
+    
 
     /**
      * Relations

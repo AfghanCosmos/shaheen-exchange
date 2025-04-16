@@ -4,6 +4,8 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\CurrencyExchangeResource\Pages;
 use App\Filament\Resources\CurrencyExchangeResource\RelationManagers;
+use App\Filament\Resources\CurrencyExchangeResource\RelationManagers\StoreRelationManager;
+use App\Filament\Resources\CurrencyExchangeResource\RelationManagers\UserRelationManager;
 use App\Models\CurrencyExchange;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -63,141 +65,199 @@ protected static function calculateReceivedAmount(Set $set, Get $get): void
 }
 
 
-public static function form(Form $form): Form
-{
-    return $form
-        ->schema([
-            Select::make('store_id')
-                ->label('Store')
-                ->relationship('store', 'name')
-                ->preload()
-                ->required(),
-            Select::make('user_id')
-                ->label('User')
-                ->relationship('user', 'name')
-                ->searchable()
-                ->default(auth()->user()->id)
-                ->preload()
-                ->required(),
-            Select::make('from_currency_id')
-                ->label('From Currency')
-                ->relationship('fromCurrency', 'code')
-                ->searchable()
-                ->preload()
-                ->required()
-                ->reactive()
-                ->afterStateUpdated(fn (Set $set, Get $get) => static::autoFillRate($set, $get)),
+    public static function form(Form $form): Form
+    {
+        return $form
+            ->schema([
 
-            Select::make('to_currency_id')
-                ->label('To Currency')
-                ->relationship('toCurrency', 'code')
-                ->searchable()
-                ->preload()
-                ->required()
-                ->reactive()
-                ->afterStateUpdated(fn (Set $set, Get $get) => static::autoFillRate($set, $get)),
+                // Currency Exchange Information Section
+                Forms\Components\Section::make('💱 Currency Exchange Information')
+                    ->description('Select the currencies and enter the exchange rates to calculate the received amount.')
+                    ->schema([
+                        Forms\Components\Select::make('store_id')
+                            ->label('🏪 Store') // Emoji for Store
+                            ->relationship('store', 'name')
+                            ->preload()
+                            ->native(false)
+                            ->required()
+                            ->helperText('Select the store for the transaction.'),
 
-            TextInput::make('amount')
-                ->label('Amount')
-                ->numeric()
-                ->reactive()
-                ->required()
-                ->afterStateUpdated(fn (Set $set, Get $get) => static::calculateReceivedAmount($set, $get)),
+                        Forms\Components\Select::make('user_id')
+                            ->label('👤 User') // Emoji for User
+                            ->relationship('user', 'name')
+                            ->searchable()
+                            ->default(auth()->user()->id)
+                            ->preload()
+                            ->required()
+                            ->helperText('Select the user involved in the exchange.'),
 
-            TextInput::make('rate')
-                ->label('Exchange Rate')
-                ->numeric()
-                ->readOnly()
-                ->reactive()
-                ->required()
-                ->afterStateUpdated(fn (Set $set, Get $get) => static::calculateReceivedAmount($set, $get)),
+                        Forms\Components\Select::make('from_currency_id')
+                            ->label('🌍 From Currency') // Emoji for From Currency
+                            ->relationship('fromCurrency', 'code')
+                            ->searchable()
+                            ->preload()
+                            ->required()
+                            ->reactive()
+                            ->helperText('Select the currency to exchange from.')
+                            ->afterStateUpdated(fn (Set $set, Get $get) => static::autoFillRate($set, $get)),
 
-            TextInput::make('received_amount')
-                ->label('Received Amount')
-                ->numeric()
-                ->readOnly()
-                ->required(),
+                        Forms\Components\Select::make('to_currency_id')
+                            ->label('💱 To Currency') // Emoji for To Currency
+                            ->relationship('toCurrency', 'code')
+                            ->searchable()
+                            ->preload()
+                            ->required()
+                            ->reactive()
+                            ->helperText('Select the currency to exchange to.')
+                            ->afterStateUpdated(fn (Set $set, Get $get) => static::autoFillRate($set, $get)),
 
-            TextInput::make('commission')
-                ->label('Commission')
-                ->numeric()
-                ->helperText('For reference only (not deducted from received amount)')
-                ->default(0),
+                    ])
+                    ->columns(2), // Two columns for better organization
 
-            DatePicker::make('date')
-                ->label('Exchange Date')
-                ->default(now())
-                ->required(),
-        ])
-        ->columns(3);
-}
+                // Amount and Rate Section
+                Forms\Components\Section::make('💵 Exchange Rates and Amount')
+                    ->description('Enter the amount and rate to calculate the received amount.')
+                    ->schema([
+                        Forms\Components\TextInput::make('amount')
+                            ->label('💵 Amount') // Emoji for Amount
+                            ->numeric()
+                            ->reactive()
+                            ->required()
+                            ->helperText('Enter the amount to exchange.')
+                            ->afterStateUpdated(fn (Set $set, Get $get) => static::calculateReceivedAmount($set, $get)),
+
+                        Forms\Components\TextInput::make('rate')
+                            ->label('🔄 Exchange Rate') // Emoji for Rate
+                            ->numeric()
+                            ->readOnly()
+                            ->reactive()
+                            ->required()
+                            ->helperText('The exchange rate between the two currencies.')
+                            ->afterStateUpdated(fn (Set $set, Get $get) => static::calculateReceivedAmount($set, $get)),
+
+                        Forms\Components\TextInput::make('received_amount')
+                            ->label('💰 Received Amount') // Emoji for Received Amount
+                            ->numeric()
+                            ->readOnly()
+                            ->required()
+                            ->helperText('Calculated based on the exchange rate and amount.'),
+
+                        Forms\Components\TextInput::make('commission')
+                            ->label('💸 Commission') // Emoji for Commission
+                            ->numeric()
+                            ->helperText('For reference only (not deducted from received amount)')
+                            ->default(0),
+                    ])
+                    ->columns(2), // Two columns for better organization
+
+                // Date and Additional Information Section
+                Forms\Components\Section::make('📅 Exchange Date')
+                    ->description('Enter the exchange date for the transaction.')
+                    ->schema([
+                        Forms\Components\DatePicker::make('date')
+                            ->label('📅 Exchange Date') // Emoji for Date Picker
+                            ->default(now())
+                            ->required()
+                            ->helperText('Select the date for the exchange rate.'),
+
+                    ])
+                    ->columns(1), // Single column for a clean layout
+
+            ]);
+    }
+
 
     public static function table(Table $table): Table
     {
         return $table
-            ->columns([
-                // store and user
-                TextColumn::make('store.name')
-                ->label('Store')
-                ->sortable()
-                ->searchable(),
+        ->columns([
 
-                TextColumn::make('user.name')
-                ->label('User')
-                ->sortable()
-                ->searchable(),
+            // Store Column with Emoji
+                Tables\Columns\TextColumn::make('store.name')
+                    ->label('🏪 Store') // Emoji for Store
+                    ->sortable()
+                    ->searchable()
+                    ->tooltip('The store where the transaction took place'),
 
-                TextColumn::make('fromCurrency.code')
-                ->label('From')
-                ->sortable()
-                ->searchable(),
-                TextColumn::make('fromCurrency.code')
-                ->label('From')
-                ->sortable()
-                ->searchable(),
+                // User Column with Emoji
+                Tables\Columns\TextColumn::make('user.name')
+                    ->label('👤 User') // Emoji for User
+                    ->sortable()
+                    ->searchable()
+                    ->tooltip('The user involved in the exchange'),
 
-            TextColumn::make('toCurrency.code')
-                ->label('To')
-                ->sortable()
-                ->searchable(),
+                // From Currency Column with Emoji
+                Tables\Columns\TextColumn::make('fromCurrency.code')
+                    ->label('🌍 From Currency') // Emoji for From Currency
+                    ->sortable()
+                    ->searchable()
+                    ->tooltip('The currency being exchanged from'),
 
-            TextColumn::make('amount')
-                ->label('Amount')
-                ->numeric(decimalPlaces: 2, decimalSeparator: '.', thousandsSeparator: ',')
-                ->sortable(),
+                // Duplicate From Currency Column Removed (Already covered above)
+                // TextColumn::make('fromCurrency.code')
+                //     ->label('From')
+                //     ->sortable()
+                //     ->searchable(),
 
-            TextColumn::make('received_amount')
-                ->label('Received')
-                ->numeric(decimalPlaces: 2, decimalSeparator: '.', thousandsSeparator: ',')
-                ->sortable(),
+                // To Currency Column with Emoji
+                Tables\Columns\TextColumn::make('toCurrency.code')
+                    ->label('💱 To Currency') // Emoji for To Currency
+                    ->sortable()
+                    ->searchable()
+                    ->tooltip('The currency being exchanged to'),
 
-            TextColumn::make('rate')
-                ->label('Rate')
-                ->numeric(decimalPlaces: 4)
-                ->sortable(),
+                // Amount Column with Emoji and Numeric Formatting
+                Tables\Columns\TextColumn::make('amount')
+                    ->label('💵 Amount') // Emoji for Amount
+                    ->sortable()
+                    ->numeric(decimalPlaces: 2, decimalSeparator: '.', thousandsSeparator: ',')
+                    ->tooltip('The amount of currency being exchanged'),
 
-            TextColumn::make('commission')
-                ->label('Commission')
-                ->numeric(decimalPlaces: 2)
-                ->sortable(),
+                // Received Amount Column with Emoji and Numeric Formatting
+                Tables\Columns\TextColumn::make('received_amount')
+                    ->label('💰 Received') // Emoji for Received Amount
+                    ->sortable()
+                    ->numeric(decimalPlaces: 2, decimalSeparator: '.', thousandsSeparator: ',')
+                    ->tooltip('The amount received after exchange'),
 
-            TextColumn::make('date')
-                ->label('Date')
-                ->date()
-                ->sortable(),
+                // Exchange Rate Column with Emoji and Numeric Formatting
+                Tables\Columns\TextColumn::make('rate')
+                    ->label('🔄 Rate') // Emoji for Rate
+                    ->sortable()
+                    ->numeric(decimalPlaces: 4)
+                    ->tooltip('The exchange rate between the two currencies'),
 
-            TextColumn::make('created_at')
-                ->label('Created')
-                ->dateTime()
-                ->sortable()
-                ->toggleable(isToggledHiddenByDefault: true),
+                // Commission Column with Emoji and Numeric Formatting
+                Tables\Columns\TextColumn::make('commission')
+                    ->label('💸 Commission') // Emoji for Commission
+                    ->sortable()
+                    ->numeric(decimalPlaces: 2)
+                    ->tooltip('The commission charged for the exchange'),
 
-            TextColumn::make('updated_at')
-                ->label('Updated')
-                ->dateTime()
-                ->sortable()
-                ->toggleable(isToggledHiddenByDefault: true),
-            ])
+                // Date Column with Emoji and Tooltip
+                Tables\Columns\TextColumn::make('date')
+                    ->label('📅 Date') // Emoji for Date
+                    ->date()
+                    ->sortable()
+                    ->tooltip('The date when the exchange rate was applied'),
+
+                // Created At Column with Emoji and Tooltip
+                Tables\Columns\TextColumn::make('created_at')
+                    ->label('📅 Created') // Emoji for Created At
+                    ->dateTime()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true)
+                    ->tooltip('The date when the exchange record was created'),
+
+                // Updated At Column with Emoji and Tooltip
+                Tables\Columns\TextColumn::make('updated_at')
+                    ->label('🔄 Updated') // Emoji for Updated At
+                    ->dateTime()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true)
+                    ->tooltip('The date when the exchange record was last updated'),
+
+        ])
             ->filters([
                 //
             ])
@@ -215,7 +275,8 @@ public static function form(Form $form): Form
     public static function getRelations(): array
     {
         return [
-            //
+            StoreRelationManager::class,
+            UserRelationManager::class,
         ];
     }
 
